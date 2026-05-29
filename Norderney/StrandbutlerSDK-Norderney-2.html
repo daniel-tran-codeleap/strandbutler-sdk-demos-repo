@@ -1,0 +1,1679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Strandbutler SDK · Norderney-Zeitreise</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Host (Norderney) brand */
+    --host-red:#DC2837;
+    --host-red-deep:#B81F2C;
+    --host-ink:#1F1F1F;
+    --host-muted:#7D7D80;
+    --host-line:#E5E6E8;
+    --host-bg:#F4F4F4;
+    --host-card:#FFFFFF;
+    --host-tag:#E2E5EA;
+
+    /* SDK (Strandbutler) palette */
+    --sdk-navy:#102E4F;
+    --sdk-navy-deep:#0A1E37;
+    --sdk-navy-soft:#1B3F66;
+    --sdk-bg:#EEF1F5;
+    --sdk-card:#FFFFFF;
+    --sdk-ink:#0F2645;
+    --sdk-muted:#6B7787;
+    --sdk-line:#DCE2EA;
+
+    --sand:#F4E2A4;
+    --sand-deep:#E9CE7D;
+    --sea:#9CD3E6;
+    --sea-deep:#6CB7CF;
+
+    --available:#102E4F;
+    --booked:#E1E4E9;
+    --bt:#4DA3FF;
+    --bt-soft:#E6F1FF;
+    --success:#1FA968;
+    --success-bg:#E4F6EC;
+
+    --shadow-card:0 1px 2px rgba(16,28,46,.06), 0 8px 28px rgba(16,28,46,.08);
+    --shadow-phone:0 30px 80px rgba(15,38,69,.25), 0 6px 24px rgba(15,38,69,.10);
+  }
+
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    background:
+      radial-gradient(1100px 600px at 20% 0%, #F2F3F6 0%, transparent 60%),
+      radial-gradient(900px 700px at 100% 100%, #EAEEF3 0%, transparent 55%),
+      #E9ECF1;
+    color:var(--host-ink);
+    min-height:100%;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- STAGE ---------- */
+  .stage{
+    min-height:100vh;
+    padding:32px 16px 110px;
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+  }
+  .stage-meta{
+    position:fixed;top:18px;left:22px;z-index:200;
+    display:flex;align-items:center;gap:10px;
+    font-size:12px;color:#5B6675;letter-spacing:.02em;
+    pointer-events:none;
+  }
+  .stage-meta .dot{width:7px;height:7px;border-radius:50%;background:var(--sdk-navy);}
+  .stage-meta strong{font-weight:700;color:#2A3A50}
+
+  /* ---------- PHONE ---------- */
+  .phone{
+    width:100%;
+    max-width:420px;
+    height:880px;
+    max-height:calc(100vh - 110px);
+    min-height:720px;
+    background:#fff;
+    border-radius:38px;
+    box-shadow:var(--shadow-phone);
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    border:1px solid rgba(255,255,255,.6);
+  }
+
+  /* Status bar */
+  .status{
+    height:24px;
+    background:var(--host-red);
+    color:#fff;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 16px;
+    font-size:11.5px;
+    font-weight:600;
+    flex-shrink:0;
+  }
+  .status .ind{display:flex;gap:6px;align-items:center;opacity:.95}
+  .status svg{width:13px;height:13px;fill:#fff}
+
+  /* Host header red strip */
+  .host-header{
+    background:var(--host-red);
+    color:#fff;
+    text-align:center;
+    padding:10px 16px 14px;
+    font-size:14.5px;
+    font-weight:600;
+    letter-spacing:.005em;
+    flex-shrink:0;
+  }
+
+  /* Host sub-bar (logo + tab switcher) */
+  .host-subbar{
+    background:#fff;
+    display:flex;
+    align-items:stretch;
+    border-bottom:1px solid var(--host-line);
+    position:relative;
+    flex-shrink:0;
+  }
+  .host-logo{
+    width:58px;display:flex;align-items:center;justify-content:center;padding:6px;flex-shrink:0;
+  }
+  .host-logo svg{width:46px;height:46px;display:block}
+  .host-cta{
+    flex:1;display:flex;align-items:center;padding:0 8px;gap:8px;min-width:0;
+  }
+  .host-cta .pill{
+    background:var(--host-red);
+    color:#fff;font-weight:700;font-size:12px;
+    padding:7px 12px;border-radius:6px;
+    box-shadow:0 1px 2px rgba(220,40,55,.25);
+    white-space:nowrap;
+  }
+  .host-cta .weather{
+    margin-left:auto;display:flex;align-items:center;gap:5px;
+    color:#2A2A2A;font-size:13px;font-weight:600;white-space:nowrap;
+  }
+  .host-cta .weather svg{width:16px;height:16px;flex-shrink:0}
+  .host-tabs-top{
+    display:flex;border-left:1px solid var(--host-line);
+  }
+  .host-tabs-top .tt{
+    padding:0 14px;display:flex;align-items:center;
+    font-size:13px;color:#9AA0A6;font-weight:600;cursor:pointer;
+    position:relative;border-right:1px solid var(--host-line);
+  }
+  .host-tabs-top .tt.active{color:var(--host-red);background:#FAFAFB}
+  .host-tabs-top .tt.active::after{
+    content:"";position:absolute;left:14px;right:14px;bottom:-1px;height:2px;background:var(--host-red);
+  }
+
+  /* Category tabs */
+  .cat-tabs{
+    display:flex;
+    background:#fff;
+    border-bottom:1px solid var(--host-line);
+    padding:0 6px;
+    overflow-x:auto;
+    scrollbar-width:none;
+    flex-shrink:0;
+  }
+  .cat-tabs::-webkit-scrollbar{display:none}
+  .cat-tab{
+    padding:14px 12px 12px;
+    font-size:13px;color:#8C8E92;font-weight:600;
+    border-bottom:2.5px solid transparent;
+    white-space:nowrap;cursor:pointer;
+    display:inline-flex;align-items:center;gap:6px;
+    transition:color .15s;
+  }
+  .cat-tab.active{color:var(--host-red);border-color:var(--host-red)}
+  .cat-tab .new-dot{
+    width:6px;height:6px;border-radius:50%;background:#4DA3FF;
+    box-shadow:0 0 0 3px rgba(77,163,255,.18);
+  }
+  .cat-tab.beach{display:inline-flex;align-items:center;gap:6px}
+  .cat-tab.beach .ico{
+    width:14px;height:14px;display:inline-block
+  }
+
+  /* SDK seam */
+  .sdk-seam{
+    background:var(--sdk-navy);
+    color:#fff;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:8px 12px;
+    font-size:11px;font-weight:600;
+    letter-spacing:.01em;
+    flex-shrink:0;
+  }
+  .sdk-seam .powered{display:flex;align-items:center;gap:6px;opacity:.92;white-space:nowrap;flex-shrink:0}
+  .sdk-seam .powered svg{width:12px;height:12px;flex-shrink:0}
+  .sdk-seam .back{display:flex;align-items:center;gap:4px;opacity:.88;cursor:pointer;font-weight:600;white-space:nowrap;flex-shrink:0}
+  .sdk-seam .back:hover{opacity:1}
+
+  /* Content area */
+  .screen{
+    flex:1;
+    min-height:0;
+    background:var(--host-bg);
+    overflow-y:auto;
+    overflow-x:hidden;
+    position:relative;
+    scrollbar-width:thin;
+    display:flex;
+    flex-direction:column;
+  }
+  .screen > .screen-inner, .screen > div{width:100%}
+  .screen > .qr-screen, .screen > .unlock-screen{flex:1;display:flex;flex-direction:column}
+  .screen::-webkit-scrollbar{width:0}
+  .screen.sdk{background:var(--sdk-bg)}
+  .screen.sdk-dark{background:var(--sdk-navy-deep)}
+
+  /* Host bottom tabs */
+  .host-bottom{
+    display:flex;
+    background:#fff;
+    border-top:1px solid var(--host-line);
+    padding:6px 4px 8px;
+    gap:2px;
+    flex-shrink:0;
+  }
+  .host-bottom .tab{
+    flex:1;
+    display:flex;flex-direction:column;align-items:center;gap:3px;
+    padding:4px 2px;color:#6E747C;font-size:10.5px;font-weight:600;cursor:pointer;
+    border-radius:8px;
+    position:relative;
+  }
+  .host-bottom .tab svg{width:20px;height:20px;stroke:#6E747C;fill:none;stroke-width:1.6}
+  .host-bottom .tab.active{color:var(--host-red)}
+  .host-bottom .tab.active svg{stroke:var(--host-red)}
+  .host-bottom .tab.framed{border:1px solid var(--host-line);background:#fff}
+
+  /* ---------- HOST SCREEN: ATTRACTIONS ---------- */
+  .host-attractions, .host-zeitreise, .host-events, .host-addresses{padding:0}
+  .host-section-head{
+    padding:18px 18px 8px;
+  }
+  .host-section-head h2{
+    margin:0;font-size:18px;font-weight:700;letter-spacing:-.01em;color:var(--host-ink);
+  }
+  .host-section-head p{margin:4px 0 0;font-size:12.5px;color:var(--host-muted)}
+
+  .map-card{
+    margin:8px 14px 14px;
+    background:linear-gradient(180deg,#B8DDF5 0%, #9BCEEC 100%);
+    border-radius:8px;
+    overflow:hidden;
+    position:relative;
+    height:380px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04);
+  }
+  .map-card .toggle{
+    position:absolute;top:10px;left:10px;z-index:5;
+    background:#fff;border-radius:4px;
+    display:flex;font-size:12px;font-weight:600;
+    box-shadow:0 1px 2px rgba(0,0,0,.18);
+    overflow:hidden;
+  }
+  .map-card .toggle span{padding:7px 12px;color:#5B6770;cursor:pointer}
+  .map-card .toggle span.on{background:#fff;color:#1F1F1F;font-weight:700}
+  .map-card .toggle span:not(.on){background:#F1F1F1}
+
+  .map-card .fullscreen{
+    position:absolute;top:10px;right:10px;z-index:5;
+    background:#fff;width:34px;height:34px;border-radius:4px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 1px 2px rgba(0,0,0,.18);
+  }
+  .map-card .fullscreen svg{width:18px;height:18px;stroke:#1F1F1F;fill:none;stroke-width:2}
+
+  .map-svg{position:absolute;inset:0;width:100%;height:100%}
+
+  .pegman{
+    position:absolute;right:10px;bottom:10px;
+    width:30px;height:34px;background:#fff;border-radius:4px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 1px 2px rgba(0,0,0,.2);
+  }
+
+  /* Host events / addresses list */
+  .host-list{padding:6px 14px 16px;display:flex;flex-direction:column;gap:10px}
+  .host-list-item{
+    background:#fff;border-radius:6px;padding:14px;
+    display:flex;gap:12px;border:1px solid var(--host-line);
+  }
+  .host-list-item .thumb{
+    width:56px;height:56px;border-radius:6px;flex-shrink:0;
+    background:#E5DDD0;display:flex;align-items:center;justify-content:center;
+  }
+  .host-list-item .info h3{margin:0;font-size:14px;font-weight:700;color:#1F1F1F}
+  .host-list-item .info p{margin:3px 0 0;font-size:12px;color:var(--host-muted);line-height:1.4}
+  .host-list-item .info .meta{display:flex;gap:10px;margin-top:6px;font-size:11.5px;color:#5B6770;font-weight:600}
+
+  /* ---------- SDK SCREENS ---------- */
+  .sdk-head{
+    background:var(--sdk-bg);
+    padding:14px 16px 12px;
+    border-bottom:1px solid var(--sdk-line);
+    display:flex;align-items:center;justify-content:space-between;
+    color:var(--sdk-ink);
+    font-weight:700;font-size:15px;
+    position:relative;
+  }
+  .sdk-head .ico-btn{
+    width:34px;height:34px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+    background:transparent;
+    cursor:pointer;
+  }
+  .sdk-head .ico-btn.solid{background:var(--sdk-navy);color:#fff}
+  .sdk-head .ico-btn svg{width:18px;height:18px}
+  .sdk-head .ico-btn.solid svg{stroke:#fff;fill:none;stroke-width:2}
+  .sdk-head .ico-btn.ghost svg{stroke:var(--sdk-ink);fill:none;stroke-width:2}
+  .sdk-head h2{margin:0;font-size:15px;font-weight:700}
+  .sdk-head .title-row{flex:1;text-align:center}
+
+  /* SDK Map */
+  .sdk-map-wrap{padding:14px 14px 0;display:flex;flex-direction:column;gap:12px}
+  .date-row{
+    display:flex;gap:8px;align-items:center;
+  }
+  .date-row .date{
+    flex:1;background:#fff;border-radius:10px;
+    padding:10px 12px;display:flex;align-items:center;gap:10px;
+    border:1px solid var(--sdk-line);
+    font-size:13.5px;font-weight:600;color:var(--sdk-ink);
+  }
+  .date-row .date .cal{
+    width:22px;height:22px;border-radius:4px;
+    background:var(--host-red);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:9px;font-weight:800;
+  }
+  .date-row .search{
+    width:42px;height:42px;border-radius:50%;
+    background:var(--sdk-navy);
+    display:flex;align-items:center;justify-content:center;
+    color:#fff;flex-shrink:0;
+  }
+  .date-row .search svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2.4}
+
+  .sdk-map{
+    border-radius:10px;
+    overflow:hidden;
+    position:relative;
+    height:330px;
+    background:#9CD3E6;
+    box-shadow:0 1px 3px rgba(15,38,69,.08);
+  }
+  .sdk-map .toggle{
+    position:absolute;top:10px;left:10px;z-index:5;
+    background:#fff;border-radius:4px;display:flex;font-size:12px;font-weight:600;
+    box-shadow:0 1px 2px rgba(0,0,0,.18);overflow:hidden;
+  }
+  .sdk-map .toggle span{padding:7px 12px;cursor:pointer;color:#5B6770}
+  .sdk-map .toggle span.on{background:#fff;color:var(--sdk-ink);font-weight:700}
+  .sdk-map .toggle span:not(.on){background:#F1F1F1}
+  .sdk-map .full{position:absolute;top:10px;right:10px;z-index:5;background:#fff;width:30px;height:30px;border-radius:4px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 2px rgba(0,0,0,.18)}
+  .sdk-map .full svg{width:14px;height:14px;stroke:var(--sdk-ink);fill:none;stroke-width:2}
+
+  .sdk-summary{
+    margin:0 14px 14px;
+    background:var(--sdk-card);
+    border-radius:12px;
+    padding:12px 14px;
+    display:flex;align-items:center;gap:12px;
+    box-shadow:var(--shadow-card);
+  }
+  .sdk-summary .chair-ico{
+    width:32px;height:32px;border-radius:50%;
+    background:var(--sdk-navy);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .sdk-summary .chair-ico svg{width:18px;height:18px;fill:#fff}
+  .sdk-summary .info{flex:1}
+  .sdk-summary .info b{display:block;font-size:14px;color:var(--sdk-ink);font-weight:800}
+  .sdk-summary .info span{font-size:11.5px;color:var(--sdk-muted)}
+  .sdk-summary .cta{
+    background:var(--sdk-navy);color:#fff;font-weight:700;font-size:13px;
+    padding:10px 16px;border-radius:30px;cursor:pointer;border:none;
+  }
+
+  /* SDK Row */
+  .sdk-row-wrap{
+    background:var(--sand);
+    padding:18px 16px 80px;
+    min-height:100%;
+  }
+  .sdk-row-wrap .row-title{
+    font-size:14px;font-weight:800;color:var(--sdk-ink);margin:0 0 8px;
+    letter-spacing:.005em;
+  }
+  .row-grid{
+    display:grid;grid-template-columns:repeat(6,1fr);
+    gap:6px;margin-bottom:18px;
+  }
+  .chair{
+    aspect-ratio:1/1.1;
+    background:var(--available);
+    border-radius:8px 8px 6px 6px;
+    color:#fff;font-weight:800;font-size:14px;
+    display:flex;align-items:center;justify-content:center;
+    position:relative;cursor:pointer;
+    box-shadow:0 1px 0 rgba(0,0,0,.08);
+  }
+  .chair::after{
+    content:"";position:absolute;left:8%;right:8%;bottom:4px;height:4px;
+    background:rgba(255,255,255,.16);border-radius:2px;
+  }
+  .chair.booked{background:var(--booked);color:#A8AEB6}
+  .chair.booked::after{background:rgba(0,0,0,.06)}
+  .chair.selected{background:#1FA968;outline:3px solid #fff;box-shadow:0 0 0 4px #1FA968}
+  .chair .bt{
+    position:absolute;top:5px;left:5px;
+    width:10px;height:10px;
+    color:var(--bt);
+  }
+  .chair .bt svg{width:100%;height:100%;fill:currentColor}
+  .legend{
+    display:flex;justify-content:space-around;
+    padding:10px 0;background:#fff;border-radius:10px;
+    font-size:12px;font-weight:600;color:var(--sdk-ink);
+    margin-bottom:0;
+  }
+  .legend .lg{display:flex;align-items:center;gap:6px}
+  .legend .sw{width:14px;height:14px;border-radius:3px}
+  .legend .sw.av{background:var(--available)}
+  .legend .sw.bk{background:var(--booked);border:1px solid #D0D4DA}
+  .legend .sw.bt{color:var(--bt);display:flex;align-items:center;justify-content:center}
+  .legend .sw.bt svg{width:14px;height:14px;fill:var(--bt)}
+
+  /* SDK Cart */
+  .sdk-pad{padding:14px 16px 100px;display:flex;flex-direction:column;gap:14px}
+  .cart-meta{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:13px;font-weight:600;color:var(--sdk-ink);
+  }
+  .cart-add{
+    background:#E2E9F2;color:var(--sdk-ink);
+    padding:8px 14px;border-radius:30px;font-size:12.5px;font-weight:700;
+    border:none;cursor:pointer;
+  }
+  .cart-item{
+    background:#fff;border-radius:12px;padding:16px;
+    box-shadow:var(--shadow-card);
+  }
+  .cart-item .top{display:flex;justify-content:space-between;align-items:flex-start}
+  .cart-item h3{margin:0;font-size:16px;font-weight:800;color:var(--sdk-ink)}
+  .cart-item .sub{margin:2px 0 0;font-size:12.5px;color:var(--sdk-muted)}
+  .cart-item hr{border:none;border-top:1px solid var(--sdk-line);margin:12px 0}
+  .cart-item .field{margin-bottom:10px}
+  .cart-item .field .lbl{font-size:11px;color:var(--sdk-muted);font-weight:600;letter-spacing:.02em}
+  .cart-item .field .val{font-size:13.5px;color:var(--sdk-ink);font-weight:700;margin-top:1px}
+  .cart-item .field .val.lh{line-height:1.35}
+  .cart-item .price-row{display:flex;justify-content:space-between;align-items:center;margin-top:4px}
+  .cart-item .price-row .lbl{font-size:11px;color:var(--sdk-muted);font-weight:600}
+  .cart-item .price-row .val{font-size:16px;color:var(--sdk-ink);font-weight:800}
+  .cart-item .bin{
+    width:28px;height:28px;border-radius:6px;background:#F3F5F8;
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .cart-item .bin svg{width:14px;height:14px;stroke:var(--sdk-muted);fill:none;stroke-width:1.8}
+
+  .total-block{margin-top:6px;padding:0 4px}
+  .total-block .row{display:flex;justify-content:space-between;align-items:center}
+  .total-block .lbl{font-size:14px;color:var(--sdk-ink);font-weight:600}
+  .total-block .val{font-size:20px;color:var(--sdk-ink);font-weight:800}
+
+  .primary{
+    background:var(--sdk-navy);color:#fff;border:none;
+    width:100%;padding:14px;font-size:14.5px;font-weight:700;
+    border-radius:10px;cursor:pointer;
+    box-shadow:0 6px 16px rgba(16,46,79,.25);
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .primary:active{transform:translateY(1px)}
+  .primary svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2}
+
+  .ghost-link{
+    background:transparent;border:none;color:var(--sdk-navy);
+    font-weight:700;font-size:14px;padding:10px;cursor:pointer;
+    width:100%;text-align:center;
+  }
+
+  /* SDK Payment */
+  .pay-section-label{
+    font-size:10.5px;color:var(--sdk-muted);font-weight:700;letter-spacing:.08em;
+    margin:6px 4px 4px;text-transform:uppercase;
+  }
+  .pay-card{
+    background:#fff;border-radius:12px;
+    box-shadow:var(--shadow-card);
+    overflow:hidden;
+  }
+  .pay-method{
+    display:flex;align-items:center;gap:12px;
+    padding:14px 14px;
+    border-bottom:1px solid var(--sdk-line);
+    cursor:pointer;
+  }
+  .pay-method:last-child{border-bottom:none}
+  .pay-method .ico{
+    width:32px;height:32px;border-radius:7px;
+    background:#F3F5F8;display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:800;color:var(--sdk-ink);
+    overflow:hidden;
+  }
+  .pay-method .ico.apple{background:#000;color:#fff}
+  .pay-method .ico.gpay{background:#fff;border:1px solid var(--sdk-line);
+    background-image:conic-gradient(from 0deg, #4285F4 0% 25%, #DB4437 25% 50%, #F4B400 50% 75%, #0F9D58 75% 100%);
+    color:#fff;
+  }
+  .pay-method .ico.gpay span{font-size:14px;font-weight:800;background:#fff;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#4285F4}
+  .pay-method .ico.cc{background:linear-gradient(135deg,#D4A04D,#A57A33);color:#fff;font-size:10px;letter-spacing:.05em}
+  .pay-method .ico.pp{background:#003087;color:#fff}
+  .pay-method .name{flex:1;font-size:14.5px;font-weight:700;color:var(--sdk-ink)}
+  .pay-method .radio{
+    width:20px;height:20px;border-radius:50%;
+    border:2px solid var(--sdk-line);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .pay-method.on .radio{border-color:var(--sdk-navy);background:var(--sdk-navy)}
+  .pay-method.on .radio::after{content:"";width:8px;height:8px;border-radius:50%;background:#fff}
+
+  .pay-card.billing{padding:14px;display:flex;flex-direction:column;gap:14px}
+  .pay-field{display:flex;flex-direction:column;gap:3px;border-bottom:1px solid var(--sdk-line);padding-bottom:8px}
+  .pay-field:last-child{border-bottom:none;padding-bottom:0}
+  .pay-field .lbl{font-size:11px;color:var(--sdk-muted);font-weight:600}
+  .pay-field .val{font-size:14px;color:var(--sdk-ink);font-weight:700}
+
+  /* SDK Confirmation */
+  .conf-head{
+    text-align:center;color:var(--sdk-navy);padding:14px 16px 4px;
+    font-size:16px;font-weight:700;background:var(--sdk-bg);
+  }
+  .conf-icon{
+    margin:14px auto 8px;
+    width:74px;height:74px;border-radius:50%;
+    background:var(--success);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 8px 22px rgba(31,169,104,.25);
+  }
+  .conf-icon svg{width:36px;height:36px;stroke:#fff;fill:none;stroke-width:3}
+  .conf-title{text-align:center;font-size:21px;font-weight:800;color:var(--sdk-ink);margin:6px 0 2px}
+  .conf-sub{text-align:center;font-size:13.5px;color:var(--sdk-muted);margin:0 0 14px}
+  .email-card{
+    background:#fff;border-radius:12px;padding:14px;box-shadow:var(--shadow-card);
+    display:flex;flex-direction:column;gap:10px;
+  }
+  .email-card .row1{display:flex;align-items:center;gap:12px}
+  .email-card .env{
+    width:38px;height:38px;border-radius:8px;background:#F3F5F8;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .email-card .env svg{width:20px;height:20px;stroke:var(--sdk-muted);fill:none;stroke-width:1.8}
+  .email-card .to-lbl{font-size:11px;color:var(--sdk-muted);font-weight:600}
+  .email-card .to-val{font-size:14px;color:var(--sdk-ink);font-weight:700}
+  .email-card hr{border:none;border-top:1px solid var(--sdk-line);margin:0}
+  .email-card .booking{font-size:13.5px;color:var(--sdk-ink);font-weight:700}
+  .email-card .booking-sub{font-size:12.5px;color:var(--sdk-muted);margin-top:2px}
+
+  .info-banner{
+    background:#E2E9F2;border-radius:10px;padding:12px 14px;
+    text-align:center;font-size:12.5px;color:var(--sdk-ink);line-height:1.4;
+  }
+
+  /* QR Scan */
+  .qr-screen{
+    background:var(--sdk-navy-deep);
+    flex:1;
+    display:flex;flex-direction:column;
+    color:#fff;
+    padding:20px 18px 30px;
+  }
+  .qr-header{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .qr-header .back{color:#fff;width:30px;display:flex;align-items:center;cursor:pointer}
+  .qr-header .ttl{font-size:15px;font-weight:700}
+  .qr-card{
+    margin:24px auto;
+    width:78%;aspect-ratio:1/1;background:#fff;border-radius:18px;
+    display:flex;align-items:center;justify-content:center;
+    box-shadow:0 14px 40px rgba(0,0,0,.35);
+    position:relative;
+  }
+  .qr-card .ok{
+    width:90px;height:90px;border-radius:50%;background:var(--success);
+    color:#fff;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 6px 18px rgba(31,169,104,.35);
+  }
+  .qr-card .ok svg{width:44px;height:44px;stroke:#fff;fill:none;stroke-width:3}
+  .qr-imported{
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.10);
+    border-radius:12px;padding:12px;text-align:center;
+    margin-top:auto;
+  }
+  .qr-imported .ttl{color:var(--success);font-size:14.5px;font-weight:700;margin:0 0 4px}
+  .qr-imported .sub{color:rgba(255,255,255,.85);font-size:12.5px;margin:0}
+  .qr-unlock-btn{
+    margin-top:14px;background:#fff;color:var(--sdk-navy);
+    width:100%;border:none;padding:14px;border-radius:10px;
+    font-weight:800;font-size:14.5px;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;
+  }
+  .qr-unlock-btn svg{width:16px;height:16px;fill:var(--bt)}
+
+  /* Bookings */
+  .empty-state{
+    flex:1;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:30px 24px;text-align:center;gap:10px;
+    min-height:380px;
+  }
+  .empty-state .circle{
+    width:78px;height:78px;border-radius:50%;background:#DDE3EC;
+    display:flex;align-items:center;justify-content:center;margin-bottom:6px;
+  }
+  .empty-state .circle svg{width:34px;height:34px;fill:var(--sdk-navy)}
+  .empty-state h3{margin:0;font-size:17px;color:var(--sdk-ink);font-weight:800}
+  .empty-state p{margin:0;font-size:13px;color:var(--sdk-muted);line-height:1.4}
+  .empty-state .scan-btn{
+    margin-top:14px;background:var(--sdk-navy);color:#fff;border:none;
+    padding:12px 22px;border-radius:10px;font-size:14px;font-weight:700;
+    display:flex;align-items:center;gap:8px;cursor:pointer;
+  }
+  .empty-state .scan-btn svg{width:16px;height:16px;stroke:#fff;fill:none;stroke-width:2.2}
+
+  .booking-card{
+    background:#fff;border-radius:12px;
+    border:1.5px solid var(--success);
+    padding:14px;display:flex;flex-direction:column;gap:12px;
+    box-shadow:0 1px 3px rgba(31,169,104,.10);
+  }
+  .booking-card .top{display:flex;gap:12px;align-items:flex-start}
+  .booking-card .chair-thumb{
+    width:54px;height:54px;border-radius:10px;
+    background:var(--success-bg);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;flex-shrink:0;
+  }
+  .booking-card .chair-thumb svg.bb{width:30px;height:30px;fill:var(--success)}
+  .booking-card .chair-thumb .check{
+    position:absolute;bottom:-3px;right:-3px;
+    width:18px;height:18px;border-radius:50%;background:var(--success);
+    border:2px solid #fff;display:flex;align-items:center;justify-content:center;
+  }
+  .booking-card .chair-thumb .check svg{width:8px;height:8px;stroke:#fff;fill:none;stroke-width:3}
+  .booking-card h4{margin:0;font-size:15px;font-weight:800;color:var(--sdk-ink);white-space:nowrap}
+  .booking-card .loc{font-size:12.5px;color:var(--sdk-muted);margin-top:2px}
+  .booking-card .meta{
+    display:flex;gap:14px;margin-top:5px;font-size:11.5px;color:var(--sdk-muted);font-weight:600;
+    align-items:center;
+  }
+  .booking-card .meta .bt{color:var(--bt);display:flex;align-items:center;gap:3px;font-weight:700}
+  .booking-card .meta .bt svg{width:11px;height:11px;fill:var(--bt)}
+  .booking-card .status{
+    background:var(--success-bg);color:var(--success);
+    padding:3px 10px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.06em;
+  }
+  .booking-card hr{border:none;border-top:1px solid var(--sdk-line);margin:0}
+  .booking-card .actions{display:flex;gap:8px}
+  .booking-card .actions button{
+    flex:1;padding:11px;border-radius:8px;font-size:13.5px;font-weight:700;
+    border:1.5px solid var(--sdk-line);background:#fff;color:var(--sdk-ink);cursor:pointer;
+  }
+  .booking-card .actions button.lock{
+    border-color:var(--sdk-navy);
+    display:flex;align-items:center;justify-content:center;gap:6px;
+  }
+  .booking-card .actions button.lock svg{width:13px;height:13px;fill:var(--bt)}
+
+  /* Unlock */
+  .unlock-screen{
+    background:var(--sdk-navy-deep);color:#fff;
+    flex:1;
+    display:flex;flex-direction:column;align-items:center;
+    padding:18px 18px 24px;
+    position:relative;
+  }
+  .unlock-screen .top{
+    width:100%;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  }
+  .unlock-screen .top .back{cursor:pointer;width:24px;display:flex;align-items:center}
+  .unlock-screen .top .ttl{font-size:15px;font-weight:700;flex:1;text-align:center;padding-right:24px}
+  .unlock-screen .ctx{margin-top:22px;text-align:center;font-size:12.5px;color:rgba(255,255,255,.8);white-space:nowrap;line-height:1.4}
+  .unlock-screen .ctx b{color:#fff;font-weight:700}
+  .bt-button{
+    margin:auto 0;
+    width:150px;height:150px;border-radius:50%;
+    background:var(--sdk-navy-soft);
+    border:3px solid rgba(255,255,255,.4);
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;
+    position:relative;
+    box-shadow:0 0 0 0 rgba(77,163,255,.4);
+    transition:transform .15s;
+    flex-shrink:0;
+  }
+  .bt-button:active{transform:scale(.97)}
+  .bt-button svg{width:54px;height:54px;fill:#fff}
+  .bt-button.pulsing::after, .bt-button.pulsing::before{
+    content:"";position:absolute;inset:-3px;border-radius:50%;border:2px solid rgba(255,255,255,.18);
+    animation:pulse 2.4s infinite;
+  }
+  .bt-button.pulsing::before{animation-delay:1.2s}
+  @keyframes pulse{
+    0%{transform:scale(.95);opacity:.7}
+    100%{transform:scale(1.35);opacity:0}
+  }
+  .bt-button.connected{background:#1FA968;border-color:rgba(255,255,255,.6)}
+  .unlock-screen .tap-label{
+    font-size:16px;font-weight:800;margin-top:22px;text-align:center;white-space:nowrap;
+  }
+  .unlock-screen .alt{
+    margin-top:18px;
+    font-size:12.5px;color:rgba(255,255,255,.55);text-align:center;
+    text-decoration:underline;cursor:pointer;
+  }
+
+  /* ---------- SHOWCASE NAV (prototype assist) ---------- */
+  .showcase{
+    position:fixed;
+    left:50%;bottom:20px;
+    transform:translateX(-50%);
+    z-index:300;
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    border-radius:999px;
+    padding:6px 8px;
+    display:flex;align-items:center;gap:4px;
+    box-shadow:0 18px 50px rgba(15,38,69,.22), 0 4px 12px rgba(15,38,69,.10);
+    border:1px solid rgba(15,38,69,.08);
+    max-width:calc(100vw - 24px);
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .showcase::-webkit-scrollbar{display:none}
+  .showcase .label{
+    font-size:10px;font-weight:800;color:#5C6878;letter-spacing:.08em;
+    padding:0 10px 0 12px;text-transform:uppercase;
+    white-space:nowrap;
+    border-right:1px solid #DDE2EA;
+    margin-right:2px;
+  }
+  .nav-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:8px 11px;border-radius:30px;
+    font-size:12px;font-weight:700;color:#3D4A5C;
+    cursor:pointer;white-space:nowrap;
+    background:transparent;border:none;
+    transition:background .15s,color .15s;
+  }
+  .nav-pill .n{
+    width:18px;height:18px;border-radius:50%;
+    background:#E1E5EC;color:#5C6878;font-size:10px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .nav-pill.active{background:var(--sdk-navy);color:#fff}
+  .nav-pill.active .n{background:rgba(255,255,255,.32);color:#fff}
+  .nav-pill.host.active{background:var(--host-red)}
+  .nav-pill:hover:not(.active){background:#F0F3F8}
+  .showcase .group-sep{width:1px;align-self:stretch;background:#DDE2EA;margin:4px 4px}
+
+  /* small util */
+  .row-bar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:11.5px;color:var(--sdk-muted);font-weight:600;margin:2px 0 0}
+
+  /* responsive */
+  @media (max-width:480px){
+    .stage{padding:0 0 80px;}
+    .phone{border-radius:0;max-width:100%;height:calc(100vh - 80px);max-height:none;min-height:0}
+    .stage-meta{display:none}
+  }
+
+  /* hidden util */
+  .hidden{display:none !important}
+
+  /* Scanner pulse */
+  @keyframes scan-line{
+    0%{top:10%}
+    100%{top:85%}
+  }
+
+  /* historic popup */
+  .historic-pop{
+    position:absolute;
+    left:50%;top:34%;transform:translateX(-50%);
+    width:62%;background:#fff;border-radius:6px;padding:6px;
+    box-shadow:0 6px 24px rgba(0,0,0,.22);
+  }
+  .historic-pop .photo{
+    width:100%;aspect-ratio:4/3;border-radius:3px;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.0) 60%, rgba(0,0,0,.15)),
+      repeating-linear-gradient(135deg, #C9BFAB 0 2px, #B5A98F 2px 4px);
+    position:relative;overflow:hidden;
+  }
+  .historic-pop .photo::before{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(120% 60% at 50% 110%, rgba(255,255,255,0) 0%, rgba(0,0,0,.35) 100%),
+      linear-gradient(180deg, #d4cab2 0%, #9a8e72 70%, #6e6447 100%);
+    opacity:.9;
+  }
+  .historic-pop .photo::after{
+    content:"";position:absolute;left:0;right:0;bottom:30%;height:24%;
+    background:linear-gradient(180deg,#3a3625 0%, #2d2a1e 100%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.10);
+  }
+  .historic-pop .cap{
+    font-size:10.5px;color:#1F1F1F;padding:5px 4px 2px;font-weight:600;
+  }
+  .historic-pop .x{position:absolute;right:4px;top:4px;width:18px;height:18px;font-size:14px;display:flex;align-items:center;justify-content:center;color:#333;cursor:pointer;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="stage-meta">
+  <div class="dot"></div>
+  <span>Strandbutler SDK · <strong>Norderney-Zeitreise erleben</strong> · Android prototype</span>
+</div>
+
+<div class="stage">
+  <div class="phone" id="phone">
+
+    <!-- Status bar -->
+    <div class="status">
+      <span>4:07</span>
+      <div class="ind">
+        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 4.97 7 13 7 13s7-8.03 7-13c0-3.87-3.13-7-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M1 9l2 2c4.97-4.97 13.03-4.97 18 0l2-2C16.93 2.93 7.08 2.93 1 9zm8 8l3 3 3-3c-1.65-1.66-4.34-1.66-6 0zm-4-4l2 2a7.07 7.07 0 0 1 10 0l2-2C15.14 9.14 8.87 9.14 5 13z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+      </div>
+    </div>
+
+    <!-- Host header -->
+    <div class="host-header">Norderney-Zeitreise erleben</div>
+
+    <!-- Sub-bar -->
+    <div class="host-subbar">
+      <div class="host-logo">
+        <!-- Norderney Zimmerservice logo -->
+        <svg viewBox="0 0 64 64">
+          <circle cx="32" cy="32" r="30" fill="#fff" stroke="#DC2837" stroke-width="2"/>
+          <g>
+            <path d="M22 26 L22 44 L42 44 L42 26 L32 19 Z" fill="#2A3540"/>
+            <rect x="25" y="33" width="3" height="11" fill="#fff"/>
+            <rect x="30" y="33" width="3" height="11" fill="#fff"/>
+            <rect x="35" y="33" width="3" height="11" fill="#fff"/>
+          </g>
+          <text x="32" y="11" text-anchor="middle" font-family="Manrope" font-size="6" font-weight="800" fill="#DC2837" letter-spacing="0.5">NORDERNEY</text>
+          <text x="32" y="58" text-anchor="middle" font-family="Manrope" font-size="4.5" font-weight="700" fill="#DC2837" letter-spacing="1">ZIMMERSERVICE</text>
+        </svg>
+      </div>
+      <div class="host-cta" id="hostCta">
+        <div class="pill">Search & Book</div>
+        <div class="weather">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1F1F1F" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          13.3°
+        </div>
+      </div>
+      <div class="host-tabs-top">
+        <div class="tt active">Discover</div>
+      </div>
+    </div>
+
+    <!-- Category tabs -->
+    <div class="cat-tabs" id="catTabs">
+      <div class="cat-tab" data-cat="events">Events</div>
+      <div class="cat-tab" data-cat="addresses">Addresses</div>
+      <div class="cat-tab active" data-cat="attractions">Attractions</div>
+      <div class="cat-tab" data-cat="zeitreise">Time Travel</div>
+      <div class="cat-tab beach" data-cat="beachchairs">
+        <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a6 6 0 0 0-6 6v3h12V9a6 6 0 0 0-6-6zm-8 11v2h16v-2H4zm2 4l-1 3h2l1-3H6zm12 0h-2l1 3h2l-1-3z"/></svg>
+        Beach Chairs
+        <span class="new-dot"></span>
+      </div>
+    </div>
+
+    <!-- Optional SDK seam -->
+    <div class="sdk-seam hidden" id="sdkSeam">
+      <div class="powered">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M12 3a6 6 0 0 0-6 6v3h12V9a6 6 0 0 0-6-6zm-8 11v2h16v-2H4z"/></svg>
+        Powered by <strong>Strandbutler</strong>
+      </div>
+      <div class="back" id="seamBack">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Norderney app
+      </div>
+    </div>
+
+    <!-- Screens -->
+    <div class="screen" id="screen"></div>
+
+    <!-- Host bottom tabs -->
+    <div class="host-bottom" id="hostBottom">
+      <div class="tab">
+        <svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+        Menu
+      </div>
+      <div class="tab">
+        <svg viewBox="0 0 24 24"><path d="M3 12 L12 4 L21 12"/><path d="M5 12 L5 20 L19 20 L19 12"/></svg>
+        Home
+      </div>
+      <div class="tab framed">
+        <svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="11" rx="1.5"/><path d="M9 8 V6 H15 V8"/><line x1="12" y1="11" x2="12" y2="16"/></svg>
+        My Trip
+      </div>
+      <div class="tab active">
+        <svg viewBox="0 0 24 24"><polygon points="12 3 14.39 8.84 20.66 9.31 15.83 13.42 17.36 19.59 12 16.13 6.64 19.59 8.17 13.42 3.34 9.31 9.61 8.84"/></svg>
+        Discover
+      </div>
+      <div class="tab">
+        <svg viewBox="0 0 24 24"><path d="M12 3 a9 9 0 0 0 -9 9 v3 a2 2 0 0 0 2 2 h2 v-7 h-3"/><path d="M12 3 a9 9 0 0 1 9 9 v3 a2 2 0 0 1 -2 2 h-2 v-7 h3"/></svg>
+        Contact
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Showcase nav -->
+<div class="showcase" id="showcase">
+  <div class="label">Demo</div>
+  <button class="nav-pill host" data-view="host-attractions"><span class="n">·</span>Host</button>
+  <div class="group-sep"></div>
+  <button class="nav-pill" data-view="sdk-map"><span class="n">1</span>Map</button>
+  <button class="nav-pill" data-view="sdk-row"><span class="n">2</span>Row</button>
+  <button class="nav-pill" data-view="sdk-cart"><span class="n">3</span>Cart</button>
+  <button class="nav-pill" data-view="sdk-pay"><span class="n">4</span>Pay</button>
+  <button class="nav-pill" data-view="sdk-email"><span class="n">5</span>Email</button>
+  <button class="nav-pill" data-view="sdk-scan"><span class="n">6</span>Scan</button>
+  <button class="nav-pill" data-view="sdk-bookings"><span class="n">7</span>Bookings</button>
+  <button class="nav-pill" data-view="sdk-unlock"><span class="n">8</span>Unlock</button>
+</div>
+
+<!-- ============================================== -->
+<!-- TEMPLATES                                       -->
+<!-- ============================================== -->
+
+<template id="tpl-attractions">
+  <div class="host-attractions">
+    <div class="host-section-head">
+      <h2>Sights on Norderney</h2>
+      <p>Explore landmarks, museums and routes across the island.</p>
+    </div>
+    <div class="map-card">
+      <div class="toggle"><span class="on">Map</span><span>Satellite</span></div>
+      <div class="fullscreen">
+        <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </div>
+      <svg class="map-svg" viewBox="0 0 380 380" preserveAspectRatio="xMidYMid slice">
+        <!-- sea -->
+        <rect width="380" height="380" fill="#B4DCEF"/>
+        <!-- waves -->
+        <g opacity=".22" fill="none" stroke="#fff" stroke-width="1">
+          <path d="M0 60 Q 40 50 80 60 T 160 60 T 240 60 T 320 60 T 400 60"/>
+          <path d="M0 90 Q 40 80 80 90 T 160 90 T 240 90 T 320 90 T 400 90"/>
+          <path d="M0 300 Q 40 290 80 300 T 160 300 T 240 300 T 320 300 T 400 300"/>
+          <path d="M0 330 Q 40 320 80 330 T 160 330 T 240 330 T 320 330 T 400 330"/>
+        </g>
+        <!-- island -->
+        <path d="M40 200 Q 80 130 170 130 Q 240 132 300 160 Q 360 180 360 220 Q 350 270 270 270 Q 200 285 140 265 Q 80 250 40 230 Z" fill="#F2E2A7"/>
+        <path d="M50 210 Q 90 155 175 155 Q 235 158 290 180 Q 340 195 340 218 Q 330 250 270 250 Q 200 262 145 246 Q 92 235 50 220 Z" fill="#E8E1CC"/>
+        <!-- inner -->
+        <path d="M90 220 Q 130 195 200 197 Q 260 200 300 220 Q 290 235 230 240 Q 170 245 100 232 Z" fill="#F1EAD5"/>
+        <!-- roads -->
+        <g stroke="#fff" stroke-width="1.5" fill="none" opacity=".85">
+          <path d="M90 225 Q 160 215 240 220 Q 290 225 320 220"/>
+          <path d="M150 200 Q 180 220 200 250"/>
+          <path d="M220 200 Q 230 230 240 260"/>
+        </g>
+        <!-- labels -->
+        <text x="180" y="225" font-size="9" fill="#7B8085" font-weight="600">Norderney</text>
+        <text x="245" y="245" font-size="8" fill="#7B8085">Kurpark</text>
+        <text x="80" y="195" font-size="7" fill="#7B8085">Wattenmeer</text>
+      </svg>
+      <!-- clusters -->
+      <div style="position:absolute;left:30%;top:30%;width:32px;height:32px;border-radius:50%;background:#2D4A5C;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow:0 2px 4px rgba(0,0,0,.25)">60</div>
+      <div style="position:absolute;left:42%;top:24%;width:30px;height:30px;border-radius:50%;background:#2D4A5C;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;box-shadow:0 2px 4px rgba(0,0,0,.25)">4</div>
+      <div style="position:absolute;left:60%;top:30%;width:28px;height:28px;border-radius:50%;background:#2D4A5C;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;box-shadow:0 2px 4px rgba(0,0,0,.25)">7</div>
+      <div style="position:absolute;left:36%;top:42%;width:38px;height:38px;border-radius:50%;background:#2D4A5C;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;box-shadow:0 2px 4px rgba(0,0,0,.25)">125</div>
+      <div style="position:absolute;left:52%;top:48%;width:28px;height:28px;border-radius:50%;background:#2D4A5C;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:11px;box-shadow:0 2px 4px rgba(0,0,0,.25)">9</div>
+      <div style="position:absolute;left:68%;top:50%;width:26px;height:26px;border-radius:50%;background:#2D4A5C;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.25)">6</div>
+      <div style="position:absolute;left:30%;top:58%;width:26px;height:26px;border-radius:50%;background:#2D4A5C;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:10px;box-shadow:0 2px 4px rgba(0,0,0,.25)">20</div>
+      <div class="pegman">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#FFC107"><circle cx="12" cy="5" r="3"/><path d="M9 9 h6 v8 h-2 v5 h-2 v-5 H9 z"/></svg>
+      </div>
+    </div>
+    <div style="padding:8px 18px 22px;display:flex;align-items:center;gap:10px;background:#fff;border-top:1px solid var(--host-line);margin-top:-6px">
+      <div style="background:#F0F0F2;color:#4A4A4D;padding:6px 10px;border-radius:14px;font-size:11.5px;font-weight:600">All</div>
+      <div style="background:#F0F0F2;color:#4A4A4D;padding:6px 10px;border-radius:14px;font-size:11.5px;font-weight:600">Museums</div>
+      <div style="background:#F0F0F2;color:#4A4A4D;padding:6px 10px;border-radius:14px;font-size:11.5px;font-weight:600">Routes</div>
+      <div style="background:#F0F0F2;color:#4A4A4D;padding:6px 10px;border-radius:14px;font-size:11.5px;font-weight:600">Nature</div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-zeitreise">
+  <div class="host-zeitreise">
+    <div class="host-section-head">
+      <h2>Time Travel</h2>
+      <p>Historical photographs pinned across the island.</p>
+    </div>
+    <div class="map-card" style="height:420px;background:linear-gradient(180deg,#B8DDF5 0%, #9BCEEC 100%)">
+      <div class="toggle"><span class="on">Map</span><span>Satellite</span></div>
+      <div class="fullscreen">
+        <svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </div>
+      <div style="position:absolute;right:10px;top:56px;background:#fff;padding:8px 12px;border-radius:6px;font-size:12px;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.18);display:flex;align-items:center;gap:6px">
+        Open Camera
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1F1F1F" stroke-width="2"><path d="M3 7h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13" r="3.5"/></svg>
+      </div>
+      <svg class="map-svg" viewBox="0 0 380 380" preserveAspectRatio="xMidYMid slice">
+        <rect width="380" height="380" fill="#B4DCEF"/>
+        <path d="M40 200 Q 80 130 170 130 Q 240 132 300 160 Q 360 180 360 220 Q 350 270 270 270 Q 200 285 140 265 Q 80 250 40 230 Z" fill="#F2E2A7"/>
+        <path d="M50 210 Q 90 155 175 155 Q 235 158 290 180 Q 340 195 340 218 Q 330 250 270 250 Q 200 262 145 246 Q 92 235 50 220 Z" fill="#E8E1CC"/>
+        <text x="180" y="225" font-size="9" fill="#7B8085" font-weight="600">Norderney</text>
+      </svg>
+      <!-- many small house pins -->
+      <div id="zeitPins" style="position:absolute;inset:0"></div>
+
+      <div class="historic-pop">
+        <div class="x">×</div>
+        <div class="photo"></div>
+        <div class="cap">Benekestraße · 1950</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-events">
+  <div class="host-events">
+    <div class="host-section-head">
+      <h2>Upcoming Events</h2>
+      <p>Concerts, markets and seaside happenings this week.</p>
+    </div>
+    <div class="host-list">
+      <div class="host-list-item">
+        <div class="thumb"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7B6F4A" stroke-width="1.8"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>
+        <div class="info">
+          <h3>Strandkonzert · Klassik am Meer</h3>
+          <p>Open-air symphony at the historic Kurpromenade.</p>
+          <div class="meta"><span>· Tomorrow, 19:00</span><span>Kurpark</span></div>
+        </div>
+      </div>
+      <div class="host-list-item">
+        <div class="thumb" style="background:#D9E5DB"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#3C5746" stroke-width="1.8"><path d="M3 21h18M5 21V8l7-4 7 4v13"/><rect x="9" y="13" width="6" height="8"/></svg></div>
+        <div class="info">
+          <h3>Bauernmarkt am Hafen</h3>
+          <p>Regional bakers, smokehouses and seasonal produce.</p>
+          <div class="meta"><span>· Saturday, 09:00</span><span>Hafenplatz</span></div>
+        </div>
+      </div>
+      <div class="host-list-item">
+        <div class="thumb" style="background:#E5D6C8"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7B5B3F" stroke-width="1.8"><path d="M3 18l5-5 4 4 9-9"/><path d="M14 8h7v7"/></svg></div>
+        <div class="info">
+          <h3>Dünenführung mit Naturführer</h3>
+          <p>Guided dune walk through the eastern nature reserve.</p>
+          <div class="meta"><span>· Sunday, 10:30</span><span>Nordstrand</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<template id="tpl-addresses">
+  <div class="host-addresses">
+    <div class="host-section-head">
+      <h2>Useful Addresses</h2>
+      <p>Local services, doctors, ferries and tourist info.</p>
+    </div>
+    <div class="host-list">
+      <div class="host-list-item">
+        <div class="thumb" style="background:#F3D9D9"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#B14040" stroke-width="2"><path d="M12 22s-7-7.5-7-12a7 7 0 0 1 14 0c0 4.5-7 12-7 12z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <div class="info">
+          <h3>Tourist Information</h3>
+          <p>Am Kurplatz 1 · 26548 Norderney</p>
+          <div class="meta"><span>· +49 4932 891-900</span><span>Open today</span></div>
+        </div>
+      </div>
+      <div class="host-list-item">
+        <div class="thumb" style="background:#DCE9E5"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#2F6A5A" stroke-width="2"><path d="M3 18s2-2 6-2 6 2 9 2"/><path d="M4 12c1-2 4-2 5 0s4 2 5 0"/></svg></div>
+        <div class="info">
+          <h3>Frisia Ferry Terminal</h3>
+          <p>Hafenstraße · Norderney</p>
+          <div class="meta"><span>· Next: 14:30</span><span>4 daily</span></div>
+        </div>
+      </div>
+      <div class="host-list-item">
+        <div class="thumb" style="background:#E2DFEC"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#5C4D80" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <div class="info">
+          <h3>Wadden Sea Visitor Centre</h3>
+          <p>Am Hafen 6 · Norderney</p>
+          <div class="meta"><span>· Daily 10:00–18:00</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- SDK MAP -->
+<template id="tpl-sdk-map">
+  <div class="screen-inner">
+    <div class="sdk-head">
+      <div class="ico-btn"></div>
+      <div class="title-row"><h2>Book a beach chair</h2></div>
+      <div class="ico-btn ghost">
+        <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><line x1="4" y1="10" x2="20" y2="10"/><line x1="9" y1="3" x2="9" y2="7"/><line x1="15" y1="3" x2="15" y2="7"/></svg>
+      </div>
+    </div>
+    <div class="sdk-map-wrap">
+      <div class="date-row">
+        <div class="date"><div class="cal">17</div>11.08.2026</div>
+        <div class="date"><div class="cal">17</div>11.08.2026</div>
+        <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><line x1="16" y1="16" x2="20" y2="20"/></svg></div>
+      </div>
+      <div class="sdk-map">
+        <div class="toggle"><span class="on">Map</span><span>Satellite</span></div>
+        <div class="full"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></div>
+        <svg viewBox="0 0 360 330" preserveAspectRatio="xMidYMid slice" style="position:absolute;inset:0;width:100%;height:100%">
+          <defs>
+            <pattern id="wave" x="0" y="0" width="40" height="20" patternUnits="userSpaceOnUse">
+              <path d="M0 10 Q 10 5 20 10 T 40 10" stroke="#fff" stroke-width="1" fill="none" opacity=".4"/>
+            </pattern>
+          </defs>
+          <rect width="360" height="330" fill="#9CD3E6"/>
+          <rect width="360" height="330" fill="url(#wave)"/>
+          <!-- island/beach shape -->
+          <path d="M70 200 Q 90 130 160 120 Q 220 115 270 140 Q 310 165 300 215 Q 280 260 220 265 Q 160 270 110 250 Q 80 230 70 200 Z" fill="#F4E2A4"/>
+          <path d="M100 195 Q 120 165 180 160 Q 230 158 265 175 Q 280 195 270 220 Q 250 245 200 245 Q 150 245 120 230 Q 100 215 100 195 Z" fill="#E9DBA3"/>
+          <!-- streets -->
+          <line x1="135" y1="195" x2="265" y2="200" stroke="#fff" stroke-width="2"/>
+          <line x1="200" y1="155" x2="200" y2="250" stroke="#fff" stroke-width="2"/>
+          <!-- "Norderney" -->
+          <text x="200" y="225" font-size="9" fill="#7B7250" font-weight="700" text-anchor="middle">Norderney</text>
+          <text x="265" y="218" font-size="8" fill="#7B7250">Kurpark</text>
+          <text x="58" y="290" font-size="7" fill="#3F6A78">Wattenmeer</text>
+        </svg>
+        <!-- markers -->
+        <div class="mk" data-n="47" style="position:absolute;left:40%;top:24%"></div>
+        <div class="mk" data-n="31" style="position:absolute;left:60%;top:34%"></div>
+        <div class="mk" data-n="18" style="position:absolute;left:24%;top:54%"></div>
+        <div class="mk" data-n="9"  style="position:absolute;left:54%;top:62%"></div>
+      </div>
+    </div>
+    <div class="sdk-summary">
+      <div class="chair-ico">
+        <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-6 6v3h12V9a6 6 0 0 0-6-6zm-8 11v2h16v-2H4zm2 4l-1 3h2l1-3H6zm12 0h-2l1 3h2l-1-3z"/></svg>
+      </div>
+      <div class="info">
+        <b>105 available</b>
+        <span>4 beach areas · Norderney</span>
+      </div>
+      <button class="cta" data-go="sdk-row">Pick a row</button>
+    </div>
+  </div>
+</template>
+
+<!-- SDK ROW -->
+<template id="tpl-sdk-row">
+  <div class="screen-inner" style="display:flex;flex-direction:column;min-height:100%">
+    <div class="sdk-head">
+      <div class="ico-btn ghost" data-go="sdk-map">
+        <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      </div>
+      <div class="title-row"><h2>Pick a beach chair</h2></div>
+      <div class="ico-btn" style="background:#E58940;color:#fff;font-weight:800;font-size:14px">i</div>
+    </div>
+    <div class="sdk-row-wrap">
+      <h4 class="row-title">Row 1</h4>
+      <div class="row-grid">
+        <div class="chair" data-id="110"><span class="bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></span>110</div>
+        <div class="chair" data-id="111">111</div>
+        <div class="chair booked" data-id="112"><span class="bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></span>112</div>
+        <div class="chair" data-id="113">113</div>
+        <div class="chair" data-id="114"><span class="bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></span>114</div>
+        <div class="chair" data-id="115">115</div>
+      </div>
+      <h4 class="row-title">Row 2</h4>
+      <div class="row-grid">
+        <div class="chair booked" data-id="116"><span class="bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></span>116</div>
+        <div class="chair" data-id="117">117</div>
+        <div class="chair" data-id="118"><span class="bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></span>118</div>
+        <div class="chair booked" data-id="119">119</div>
+        <div class="chair" data-id="120"><span class="bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></span>120</div>
+        <div class="chair" data-id="121">121</div>
+      </div>
+      <h4 class="row-title">Row 3</h4>
+      <div class="row-grid">
+        <div class="chair" data-id="122"><span class="bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></span>122</div>
+        <div class="chair booked" data-id="123">123</div>
+        <div class="chair" data-id="124"><span class="bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></span>124</div>
+        <div class="chair" data-id="125">125</div>
+        <div class="chair booked" data-id="126"><span class="bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></span>126</div>
+        <div class="chair" data-id="127">127</div>
+      </div>
+      <h4 class="row-title">Row 4</h4>
+      <div class="row-grid">
+        <div class="chair" data-id="128"><span class="bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></span>128</div>
+        <div class="chair" data-id="129">129</div>
+        <div class="chair" data-id="130"><span class="bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></span>130</div>
+        <div class="chair" data-id="131">131</div>
+        <div class="chair booked" data-id="132"><span class="bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></span>132</div>
+        <div class="chair selected" data-id="177">177</div>
+      </div>
+      <div class="legend">
+        <div class="lg"><div class="sw av"></div>Available</div>
+        <div class="lg"><div class="sw bk"></div>Booked</div>
+        <div class="lg"><div class="sw bt"><svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4"/></svg></div>Bluetooth</div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<!-- SDK CART -->
+<template id="tpl-sdk-cart">
+  <div class="screen-inner">
+    <div class="sdk-head">
+      <div class="ico-btn ghost" data-go="sdk-row"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="title-row"><h2>Cart</h2></div>
+      <div class="ico-btn"></div>
+    </div>
+    <div class="sdk-pad">
+      <div class="cart-meta">
+        <span>1 item</span>
+        <button class="cart-add">+ Add chair</button>
+      </div>
+      <div class="cart-item">
+        <div class="top">
+          <div>
+            <h3>Beach Chair #177</h3>
+            <div class="sub">2-Person · Bluetooth</div>
+          </div>
+          <div class="bin"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6"/><line x1="10" y1="10" x2="10" y2="17"/><line x1="14" y1="10" x2="14" y2="17"/></svg></div>
+        </div>
+        <hr/>
+        <div class="field">
+          <div class="lbl">Duration</div>
+          <div class="val lh">09:00 — 23:00 · 08.08.2026</div>
+        </div>
+        <div class="field">
+          <div class="lbl">Location</div>
+          <div class="val lh">West Beach · Strandbutler Section · Row 3</div>
+        </div>
+        <div class="price-row">
+          <div class="lbl">Price</div>
+          <div class="val">€ 12.50</div>
+        </div>
+      </div>
+      <div class="total-block">
+        <div class="row"><div class="lbl">Total price</div><div class="val">€ 12.50</div></div>
+      </div>
+      <button class="primary" data-go="sdk-pay">Continue to Payment</button>
+    </div>
+  </div>
+</template>
+
+<!-- SDK PAYMENT -->
+<template id="tpl-sdk-pay">
+  <div class="screen-inner">
+    <div class="sdk-head">
+      <div class="ico-btn ghost" data-go="sdk-cart"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="title-row"><h2>Payment</h2></div>
+      <div class="ico-btn"></div>
+    </div>
+    <div class="sdk-pad">
+      <div>
+        <div class="pay-section-label">Payment method</div>
+        <div class="pay-card" id="payMethods">
+          <div class="pay-method on" data-method="apple">
+            <div class="ico apple">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#fff"><path d="M19 17c-.5 1.2-1 2.3-1.8 3.2-1 1.2-1.7 1.4-2.6 1.4-1 0-1.2-.4-2.4-.4s-1.5.4-2.4.4c-.9 0-1.7-.4-2.6-1.5C5 17.7 4 14.3 5.6 11.7c.9-1.3 2.3-2.1 3.6-2.1 1.1 0 1.7.5 2.6.5.9 0 1.5-.5 2.6-.5 1.4 0 2.7.7 3.5 2-3.1 1.7-2.6 6.1 1.1 5.4zM14.3 7.4c.6-.8 1-1.8.9-2.9-.9.1-2 .6-2.6 1.4-.6.7-1 1.7-.9 2.7 1 0 2-.5 2.6-1.2z"/></svg>
+            </div>
+            <div class="name">Apple Pay</div>
+            <div class="radio"></div>
+          </div>
+          <div class="pay-method" data-method="gpay">
+            <div class="ico gpay"><span>G</span></div>
+            <div class="name">Google Pay</div>
+            <div class="radio"></div>
+          </div>
+          <div class="pay-method" data-method="cc">
+            <div class="ico cc">CARD</div>
+            <div class="name">Credit card</div>
+            <div class="radio"></div>
+          </div>
+          <div class="pay-method" data-method="pp">
+            <div class="ico pp">P</div>
+            <div class="name">PayPal</div>
+            <div class="radio"></div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="pay-section-label">Billing details</div>
+        <div class="pay-card billing">
+          <div class="pay-field">
+            <div class="lbl">Name</div>
+            <div class="val">Anna Müller</div>
+          </div>
+          <div class="pay-field">
+            <div class="lbl">Email</div>
+            <div class="val"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="23424d4d4263465b424e534f460d404c4e">[email&#160;protected]</a></div>
+          </div>
+        </div>
+      </div>
+      <button class="primary" data-go="sdk-email">Pay now · € 12.50</button>
+    </div>
+  </div>
+</template>
+
+<!-- SDK EMAIL CONFIRMATION -->
+<template id="tpl-sdk-email">
+  <div class="screen-inner">
+    <div class="conf-head">Payment successful</div>
+    <div class="sdk-pad">
+      <div class="conf-icon">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h2 class="conf-title">Payment successful</h2>
+      <p class="conf-sub">We've emailed your booking and QR code.</p>
+      <div class="email-card">
+        <div class="row1">
+          <div class="env">
+            <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="1"/><polyline points="3 7 12 14 21 7"/></svg>
+          </div>
+          <div>
+            <div class="to-lbl">Sent to</div>
+            <div class="to-val"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="7918171718391c01181409151c571a1614">[email&#160;protected]</a></div>
+          </div>
+        </div>
+        <hr/>
+        <div>
+          <div class="booking">Beach Chair #177 · 09:00–23:00 · 08.08.2026</div>
+          <div class="booking-sub">West Beach · Row 3 (Norderney)</div>
+        </div>
+      </div>
+      <div class="info-banner">Open the email and scan the QR code with the app to unlock your chair.</div>
+      <button class="primary" data-go="sdk-scan">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+        Scan QR code
+      </button>
+      <button class="ghost-link" data-go="host-attractions">Done</button>
+    </div>
+  </div>
+</template>
+
+<!-- SDK QR SCAN -->
+<template id="tpl-sdk-scan">
+  <div class="qr-screen">
+    <div class="qr-header">
+      <div class="back" data-go="sdk-email"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="ttl">Import booking</div>
+      <div style="width:30px"></div>
+    </div>
+    <div class="qr-card">
+      <div class="ok"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    </div>
+    <div class="qr-imported">
+      <div class="ttl">Booking imported</div>
+      <div class="sub">Beach Chair #177 · West Beach · Row 3 (Norderney)</div>
+    </div>
+    <button class="qr-unlock-btn" data-go="sdk-unlock">
+      <svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4" fill="none" stroke="#4DA3FF" stroke-width="2"/></svg>
+      Unlock chair
+    </button>
+  </div>
+</template>
+
+<!-- SDK BOOKINGS -->
+<template id="tpl-sdk-bookings">
+  <div class="screen-inner">
+    <div class="sdk-head">
+      <div class="ico-btn ghost" data-go="sdk-map"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="title-row"><h2>My Bookings</h2></div>
+      <div class="ico-btn solid" data-go="sdk-scan"><svg viewBox="0 0 24 24"><path d="M4 4h4M4 4v4M20 4h-4M20 4v4M4 20h4M4 20v-4M20 20h-4M20 20v-4"/></svg></div>
+    </div>
+    <div id="bookingsBody" class="sdk-pad" style="padding-top:16px;flex:1"></div>
+    <div style="padding:8px 16px 16px;display:flex;justify-content:center;gap:6px">
+      <button class="ghost-link" style="flex:0;font-size:12px;padding:6px 14px;border-radius:30px;background:#fff;border:1px solid var(--sdk-line);white-space:nowrap;width:auto" id="toggleBookings">Toggle empty / active</button>
+    </div>
+  </div>
+</template>
+
+<!-- SDK UNLOCK -->
+<template id="tpl-sdk-unlock">
+  <div class="unlock-screen">
+    <div class="top">
+      <div class="back" data-go="sdk-bookings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4"><polyline points="15 18 9 12 15 6"/></svg></div>
+      <div class="ttl">Unlock chair</div>
+    </div>
+    <div class="ctx">Beach Chair <b>#177</b> · In range of your chair</div>
+    <div class="bt-button pulsing" id="btBtn">
+      <svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="tap-label" id="btLabel">Tap to unlock</div>
+    <div class="alt">Trouble? Enter code manually</div>
+  </div>
+</template>
+
+<!-- ============================================== -->
+<!-- SCRIPT                                          -->
+<!-- ============================================== -->
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  const state = {
+    view: 'host-attractions',
+    bookingsActive: false, // toggle 7A/7B
+  };
+
+  const SCREEN = document.getElementById('screen');
+  const SEAM = document.getElementById('sdkSeam');
+  const CAT_TABS = document.querySelectorAll('.cat-tab');
+  const NAV_PILLS = document.querySelectorAll('.nav-pill');
+
+  // Marker bubble drawer
+  function chairMarker(n){
+    return `<div style="transform:translate(-50%,-100%);position:relative">
+      <div style="position:relative;width:48px;height:60px">
+        <svg viewBox="0 0 48 60" width="48" height="60" style="position:absolute;inset:0;filter:drop-shadow(0 4px 8px rgba(0,0,0,.30))">
+          <path d="M24 58 C 8 38 2 28 6 18 A 18 18 0 0 1 42 18 C 46 28 40 38 24 58 Z" fill="#102E4F"/>
+        </svg>
+        <div style="position:absolute;top:5px;left:50%;transform:translateX(-50%);width:30px;height:24px;display:flex;align-items:center;justify-content:center">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M12 3a6 6 0 0 0-6 6v3h12V9a6 6 0 0 0-6-6zm-8 11v2h16v-2H4zm2 4l-1 3h2l1-3H6zm12 0h-2l1 3h2l-1-3z"/></svg>
+        </div>
+        <div style="position:absolute;top:-6px;right:-6px;background:#fff;border-radius:14px;padding:1px 7px;font-size:11px;font-weight:800;color:#102E4F;box-shadow:0 1px 3px rgba(0,0,0,.2)">${n}</div>
+      </div>
+    </div>`;
+  }
+
+  function houseMarker(){
+    return `<svg width="22" height="28" viewBox="0 0 24 30" style="filter:drop-shadow(0 2px 3px rgba(0,0,0,.25))">
+      <path d="M12 29 C 4 19 1 14 3 9 A 9 9 0 0 1 21 9 C 23 14 20 19 12 29 Z" fill="#2D4A5C"/>
+      <g fill="#fff" transform="translate(0,-1)">
+        <circle cx="9" cy="9" r="1.6"/><circle cx="15" cy="9" r="1.6"/>
+        <path d="M6 14 Q 9 11 12 12 Q 15 11 18 14 Z"/>
+      </g>
+    </svg>`;
+  }
+
+  // Render screen
+  function render(){
+    SCREEN.classList.remove('sdk','sdk-dark');
+    SEAM.classList.add('hidden');
+
+    let tplId='';
+    let inSDK = state.view.startsWith('sdk-');
+    if(inSDK){
+      SEAM.classList.remove('hidden');
+      SCREEN.classList.add('sdk');
+      if(state.view==='sdk-scan' || state.view==='sdk-unlock'){
+        SCREEN.classList.add('sdk-dark');
+      }
+    }
+
+    switch(state.view){
+      case 'host-events': tplId='tpl-events'; break;
+      case 'host-addresses': tplId='tpl-addresses'; break;
+      case 'host-attractions': tplId='tpl-attractions'; break;
+      case 'host-zeitreise': tplId='tpl-zeitreise'; break;
+      case 'sdk-map': tplId='tpl-sdk-map'; break;
+      case 'sdk-row': tplId='tpl-sdk-row'; break;
+      case 'sdk-cart': tplId='tpl-sdk-cart'; break;
+      case 'sdk-pay': tplId='tpl-sdk-pay'; break;
+      case 'sdk-email': tplId='tpl-sdk-email'; break;
+      case 'sdk-scan': tplId='tpl-sdk-scan'; break;
+      case 'sdk-bookings': tplId='tpl-sdk-bookings'; break;
+      case 'sdk-unlock': tplId='tpl-sdk-unlock'; break;
+    }
+    const tpl = document.getElementById(tplId);
+    SCREEN.innerHTML = '';
+    SCREEN.appendChild(tpl.content.cloneNode(true));
+
+    // post-render hooks
+    if(state.view==='sdk-map'){
+      // inject markers
+      document.querySelectorAll('.sdk-map .mk').forEach(el=>{
+        const n = el.getAttribute('data-n');
+        el.innerHTML = chairMarker(n);
+        el.style.cursor='pointer';
+        el.addEventListener('click',()=>go('sdk-row'));
+      });
+    }
+    if(state.view==='sdk-row'){
+      document.querySelectorAll('.chair').forEach(c=>{
+        c.addEventListener('click',(e)=>{
+          if(c.classList.contains('booked')) return;
+          document.querySelectorAll('.chair').forEach(x=>x.classList.remove('selected'));
+          c.classList.add('selected');
+          setTimeout(()=>go('sdk-cart'),250);
+        });
+      });
+    }
+    if(state.view==='sdk-pay'){
+      document.querySelectorAll('.pay-method').forEach(m=>{
+        m.addEventListener('click',()=>{
+          document.querySelectorAll('.pay-method').forEach(x=>x.classList.remove('on'));
+          m.classList.add('on');
+        });
+      });
+    }
+    if(state.view==='host-zeitreise'){
+      // populate pins
+      const pinsEl = document.getElementById('zeitPins');
+      const positions = [
+        [16,40],[24,46],[20,55],[28,52],[34,58],[40,52],[46,58],[32,68],[40,72],[48,68],
+        [22,70],[28,75],[18,62],[26,62],[36,46],[44,46],[52,52],[58,58],[14,55],[10,60]
+      ];
+      positions.forEach(([x,y])=>{
+        const d = document.createElement('div');
+        d.style.cssText = `position:absolute;left:${x}%;top:${y}%;transform:translate(-50%,-100%)`;
+        d.innerHTML = houseMarker();
+        pinsEl.appendChild(d);
+      });
+    }
+    if(state.view==='sdk-bookings'){
+      renderBookings();
+      document.getElementById('toggleBookings').addEventListener('click',()=>{
+        state.bookingsActive = !state.bookingsActive;
+        renderBookings();
+      });
+    }
+    if(state.view==='sdk-unlock'){
+      const btn = document.getElementById('btBtn');
+      const lbl = document.getElementById('btLabel');
+      btn.addEventListener('click',()=>{
+        btn.classList.remove('pulsing');
+        btn.classList.add('connected');
+        lbl.textContent = 'Unlocked';
+        setTimeout(()=>{
+          btn.classList.remove('connected');
+          btn.classList.add('pulsing');
+          lbl.textContent = 'Tap to unlock';
+        }, 2000);
+      });
+    }
+
+    // attach data-go handlers
+    SCREEN.querySelectorAll('[data-go]').forEach(el=>{
+      el.addEventListener('click',()=>{
+        const v = el.getAttribute('data-go');
+        go(v);
+      });
+    });
+
+    // category tab highlight
+    CAT_TABS.forEach(t=>t.classList.remove('active'));
+    if(state.view.startsWith('sdk-')){
+      document.querySelector('.cat-tab[data-cat="beachchairs"]').classList.add('active');
+    } else {
+      const map = {
+        'host-events':'events',
+        'host-addresses':'addresses',
+        'host-attractions':'attractions',
+        'host-zeitreise':'zeitreise',
+      };
+      const k = map[state.view];
+      if(k) document.querySelector(`.cat-tab[data-cat="${k}"]`).classList.add('active');
+    }
+
+    // showcase pill highlight
+    NAV_PILLS.forEach(p=>p.classList.remove('active'));
+    let activePillView = state.view;
+    if(!state.view.startsWith('sdk-')) activePillView='host-attractions';
+    const pill = document.querySelector(`.nav-pill[data-view="${activePillView}"]`);
+    if(pill) pill.classList.add('active');
+
+    // scroll content top
+    SCREEN.scrollTop = 0;
+  }
+
+  function renderBookings(){
+    const body = document.getElementById('bookingsBody');
+    if(!body) return;
+    if(state.bookingsActive){
+      body.innerHTML = `
+        <div class="booking-card">
+          <div class="top">
+            <div class="chair-thumb">
+              <svg class="bb" viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-6 6v3h12V9a6 6 0 0 0-6-6zm-8 11v2h16v-2H4zm2 4l-1 3h2l1-3H6zm12 0h-2l1 3h2l-1-3z"/></svg>
+              <div class="check"><svg viewBox="0 0 24 24" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+            </div>
+            <div style="flex:1">
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <h4>Beach Chair #177</h4>
+                <div class="status">UNLOCKED</div>
+              </div>
+              <div class="loc">West Beach · Row 3 (Norderney)</div>
+              <div class="meta">
+                <span>📅 08.08.2026</span>
+                <span class="bt">
+                  <svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4" fill="none" stroke="#4DA3FF" stroke-width="2" stroke-linecap="round"/></svg>
+                  BT
+                </span>
+              </div>
+            </div>
+          </div>
+          <hr/>
+          <div class="actions">
+            <button>Remove</button>
+            <button class="lock" data-go="sdk-unlock">
+              <svg viewBox="0 0 24 24"><path d="M7 4 L17 12 L7 20 V4z M7 12 L17 4" fill="none" stroke="#4DA3FF" stroke-width="2" stroke-linecap="round"/></svg>
+              Lock
+            </button>
+          </div>
+        </div>
+      `;
+      // rebind
+      body.querySelectorAll('[data-go]').forEach(el=>{
+        el.addEventListener('click',()=>go(el.getAttribute('data-go')));
+      });
+    } else {
+      body.innerHTML = `
+        <div class="empty-state">
+          <div class="circle">
+            <svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-6 6v3h12V9a6 6 0 0 0-6-6zm-8 11v2h16v-2H4zm2 4l-1 3h2l1-3H6zm12 0h-2l1 3h2l-1-3z"/></svg>
+          </div>
+          <h3>No scanned bookings yet</h3>
+          <p>Scan your QR code to add a chair to your list.</p>
+          <button class="scan-btn" data-go="sdk-scan">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
+            Scan QR
+          </button>
+        </div>
+      `;
+      body.querySelectorAll('[data-go]').forEach(el=>{
+        el.addEventListener('click',()=>go(el.getAttribute('data-go')));
+      });
+    }
+  }
+
+  function go(view){
+    state.view = view;
+    render();
+  }
+
+  // Bind category tabs
+  CAT_TABS.forEach(t=>{
+    t.addEventListener('click',()=>{
+      const c = t.getAttribute('data-cat');
+      if(c==='beachchairs') go('sdk-map');
+      else if(c==='events') go('host-events');
+      else if(c==='addresses') go('host-addresses');
+      else if(c==='attractions') go('host-attractions');
+      else if(c==='zeitreise') go('host-zeitreise');
+    });
+  });
+
+  // Seam back
+  document.getElementById('seamBack').addEventListener('click',()=>go('host-attractions'));
+
+  // Showcase pills
+  NAV_PILLS.forEach(p=>{
+    p.addEventListener('click',()=>{
+      const v = p.getAttribute('data-view');
+      go(v);
+    });
+  });
+
+  // initial
+  render();
+</script>
+</body>
+</html>
