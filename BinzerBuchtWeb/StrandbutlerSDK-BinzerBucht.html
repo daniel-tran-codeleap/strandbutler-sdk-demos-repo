@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Strandbutler SDK — embedded in Binzer Bucht</title>
+<style>
+  :root{
+    /* Host — Binzer Bucht */
+    --navy:#0e3343;          /* brand deep teal */
+    --navy-2:#16485c;
+    --slate:#8fa6b0;         /* faded display headings */
+    --ink:#26333a;
+    --body:#54636b;
+    --cream:#f3f1ea;
+    --line:#e4e2da;
+    --orange:#c2542a;
+    --white:#ffffff;
+
+    /* SDK — Strandbutler (stable identity) */
+    --sb:#16315c;
+    --sb-2:#1f4279;
+    --sb-bg:#eef1f6;
+    --grn:#17a05a;
+    --grn-soft:#dff3e6;
+    --smute:#8a8f98;
+    --shair:#e4e5e8;
+
+    --disp:"Oswald","Archivo Narrow","Helvetica Neue Condensed","Arial Narrow","Helvetica Neue",sans-serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI","Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;font-family:var(--sans);color:var(--ink);background:#fff;font-size:16px;line-height:1.6;
+    padding-bottom:74px;}
+  img{max-width:100%;display:block;}
+  h1,h2,h3,h4{font-family:var(--disp);font-weight:600;letter-spacing:.01em;margin:0;font-stretch:condensed;}
+  .disp{font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.02em;}
+  .kicker{font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.18em;font-weight:600;font-size:14px;color:var(--navy);}
+
+  /* ===== HOST TOP NAV ===== */
+  .nav{position:fixed;top:0;left:0;right:0;height:74px;background:#fff;z-index:80;display:flex;align-items:center;
+    padding:0 28px;box-shadow:0 1px 0 rgba(0,0,0,.06),0 6px 20px -16px rgba(0,0,0,.4);}
+  .logo{width:104px;height:46px;background:var(--navy);border-radius:3px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;}
+  .nav-mid{flex:1;display:flex;align-items:center;justify-content:center;gap:38px;}
+  .nav-item{display:flex;align-items:center;gap:9px;color:#9aa7ad;font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;
+    letter-spacing:.1em;font-size:14px;font-weight:600;cursor:pointer;transition:color .15s;white-space:nowrap;}
+  .nav-item:hover{color:var(--navy);}
+  .nav-item svg{stroke:currentColor;}
+  .nav-r{display:flex;align-items:center;gap:22px;color:#9aa7ad;flex:0 0 auto;}
+  .nav-r svg{cursor:pointer;}
+  @media (max-width:880px){.nav-mid{display:none;}}
+
+  /* ===== VIEWPORT / SCREENS ===== */
+  .viewport{margin-top:74px;}
+  .screen{display:none;}
+  .screen.active{display:block;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 40px;}
+  @media (max-width:680px){.wrap{padding:0 22px;}}
+
+  /* ===== HOME ===== */
+  .hero{height:78vh;min-height:520px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;color:#fff;overflow:hidden;
+    background:linear-gradient(180deg,#86b6d2 0%,#9cc3d6 34%,#7ba98f 60%,#c9c3a3 100%);}
+  .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,30,42,.15),rgba(10,30,42,.35));}
+  .hero .h-treeline{position:absolute;left:0;right:0;bottom:24%;height:40%;
+    background:radial-gradient(60% 120% at 30% 100%, #2f5d3a 0 60%, transparent 61%),
+               radial-gradient(70% 120% at 70% 100%, #356a40 0 60%, transparent 61%),
+               linear-gradient(180deg,transparent,#34663f 60%);opacity:.85;}
+  .hero .h-inner{position:relative;z-index:2;}
+  .hero .h-kicker{font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.22em;font-size:18px;margin-bottom:14px;text-shadow:0 2px 8px rgba(0,0,0,.3);}
+  .hero .wave{width:64px;height:14px;margin:0 auto 10px;opacity:.9;}
+  .hero h1{font-size:clamp(54px,9vw,120px);line-height:.92;text-shadow:0 4px 18px rgba(0,0,0,.3);}
+  .hero h1 .b2{color:var(--navy);}
+  .hero .scroll{position:absolute;bottom:30px;z-index:2;opacity:.85;animation:bob 2s ease-in-out infinite;}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(8px)}}
+
+  .sec{padding:96px 0;}
+  .sec.tight{padding:64px 0;}
+  .editorial h2{font-size:clamp(40px,6vw,76px);line-height:.98;color:var(--navy);}
+  .editorial h2 .faded{color:var(--slate);display:block;}
+  .editorial .body{max-width:680px;margin-left:auto;margin-top:36px;color:var(--body);font-size:18px;}
+
+  .cards-overlap{position:relative;margin-top:60px;min-height:440px;}
+  .ovc{position:absolute;border-radius:2px;overflow:hidden;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    box-shadow:0 30px 60px -28px rgba(0,0,0,.5);cursor:pointer;}
+  .ovc .lbl{font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;font-size:clamp(40px,6vw,72px);font-weight:600;letter-spacing:.02em;text-shadow:0 3px 12px rgba(0,0,0,.4);z-index:2;}
+  .ovc::after{content:"";position:absolute;inset:0;background:rgba(12,30,42,.28);}
+  .ovc .more{position:relative;z-index:2;margin-top:18px;border:1px solid rgba(255,255,255,.85);padding:11px 26px;
+    font-family:var(--disp);font-stretch:condensed;letter-spacing:.14em;text-transform:uppercase;font-size:13px;}
+  .ovc.a{right:0;top:0;width:62%;height:300px;background:linear-gradient(160deg,#5a7f97,#243b46);}
+  .ovc.b{left:0;bottom:0;width:52%;height:300px;background:linear-gradient(160deg,#9fb6c4,#4a6470);}
+  @media (max-width:680px){.cards-overlap{min-height:0;display:flex;flex-direction:column;gap:18px;}
+    .ovc{position:static;width:100%!important;height:220px;}}
+
+  .stats{background:var(--cream);}
+  .stats h2{text-align:center;color:var(--slate);font-size:clamp(30px,4.5vw,52px);letter-spacing:.04em;}
+  .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-top:50px;}
+  .stat{text-align:center;padding:0 16px;position:relative;}
+  .stat+.stat::before{content:"";position:absolute;left:0;top:6px;bottom:6px;border-left:2px dotted #c9cdc0;}
+  .stat .num{font-family:var(--disp);font-stretch:condensed;font-size:clamp(44px,6vw,78px);color:var(--slate);line-height:1;font-weight:600;}
+  .stat .cap{font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.08em;color:var(--navy);font-size:14px;margin-top:12px;font-weight:600;}
+  @media (max-width:680px){.stat-row{grid-template-columns:1fr 1fr;gap:34px 0;}.stat:nth-child(3)::before{display:none;}}
+
+  /* booking search bar */
+  .searchbar{background:var(--cream);border-top:1px solid #e7e4d9;}
+  .searchbar .inner{display:flex;align-items:flex-end;gap:26px;flex-wrap:wrap;padding:34px 0;}
+  .fld{display:flex;flex-direction:column;gap:8px;}
+  .fld .l{font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.1em;font-size:12px;color:var(--navy);font-weight:600;}
+  .fld .ctrl{background:#fff;border:1px solid var(--line);height:54px;display:flex;align-items:center;padding:0 16px;color:#9aa7ad;min-width:120px;font-size:15px;}
+  .fld.dates .ctrl{min-width:330px;justify-content:space-between;}
+  .fld.dates .ctrl span+span{border-left:1px solid var(--line);padding-left:18px;margin-left:18px;}
+  .btn-host{background:var(--navy);color:#fff;border:none;height:54px;padding:0 30px;font-family:var(--disp);font-stretch:condensed;
+    text-transform:uppercase;letter-spacing:.12em;font-size:15px;font-weight:600;cursor:pointer;transition:background .15s;}
+  .btn-host:hover{background:var(--navy-2);}
+
+  /* accommodation discovery */
+  .acc-head{text-align:center;margin-bottom:8px;}
+  .acc-head .kicker{display:block;margin-bottom:14px;}
+  .acc-head h2{font-size:clamp(34px,5vw,60px);color:var(--navy);}
+  .acc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:54px;}
+  .acc-card{border:1px solid var(--line);background:#fff;cursor:pointer;transition:box-shadow .2s, transform .2s;overflow:hidden;}
+  .acc-card:hover{box-shadow:0 24px 50px -28px rgba(14,51,67,.5);transform:translateY(-3px);}
+  .acc-card .pic{height:200px;background-size:cover;background-position:center;position:relative;}
+  .acc-card .pic .tag{position:absolute;left:14px;top:14px;background:#fff;color:var(--navy);font-family:var(--disp);font-stretch:condensed;
+    text-transform:uppercase;letter-spacing:.08em;font-size:11px;padding:5px 11px;font-weight:600;}
+  .acc-card .pic .feat{position:absolute;right:14px;top:14px;background:var(--sb);color:#fff;font-size:10px;padding:5px 10px;border-radius:20px;display:flex;align-items:center;gap:5px;}
+  .acc-card .cb{padding:18px 20px 22px;}
+  .acc-card .cb .nm{font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;font-size:22px;color:var(--navy);font-weight:600;line-height:1.1;}
+  .acc-card .cb .loc{font-size:13px;color:var(--smute);margin-top:5px;display:flex;align-items:center;gap:5px;}
+  .acc-card .cb .stars{color:#e0a526;font-size:14px;margin-top:10px;letter-spacing:2px;}
+  .acc-card .cb .price{margin-top:14px;font-size:14px;color:var(--body);}
+  .acc-card .cb .price b{font-family:var(--disp);font-stretch:condensed;font-size:24px;color:var(--navy);}
+  @media (max-width:880px){.acc-grid{grid-template-columns:1fr;max-width:420px;margin-inline:auto;}}
+
+  .foot{background:var(--navy);color:#bcd0d8;padding:54px 0;margin-top:0;}
+  .foot .fr{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;}
+  .foot .fl{display:flex;gap:26px;font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.1em;font-size:13px;}
+  .foot small{color:#7f9aa6;}
+
+  /* ===== DETAIL (Hotel Meersinn) ===== */
+  .det-tabs{position:sticky;top:74px;background:#fff;z-index:60;border-bottom:1px solid var(--line);display:flex;gap:40px;justify-content:center;
+    padding:16px 20px;font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.1em;font-size:14px;font-weight:600;overflow-x:auto;}
+  .det-tabs span{color:#9aa7ad;cursor:pointer;white-space:nowrap;}
+  .det-tabs span.on,.det-tabs span:hover{color:var(--navy);}
+  .gallery{height:440px;display:grid;grid-template-columns:1fr 2fr 1fr;gap:6px;background:#dfe3e0;position:relative;overflow:hidden;}
+  .gallery .g{background-size:cover;background-position:center;}
+  .gallery .g1{background:linear-gradient(160deg,#9db4c2,#6d8a98);}
+  .gallery .g2{background:linear-gradient(160deg,#acc6d6,#5a7e8e);}
+  .gallery .g3{background:linear-gradient(160deg,#c3cdbb,#8a9c86);}
+  .gallery .allimg{position:absolute;left:20px;bottom:18px;background:#fff;color:var(--navy);font-family:var(--disp);font-stretch:condensed;
+    text-transform:uppercase;letter-spacing:.08em;font-size:13px;padding:9px 16px;display:flex;align-items:center;gap:9px;font-weight:600;}
+  .det-body{max-width:1080px;margin:0 auto;padding:44px 40px 60px;}
+  @media (max-width:680px){.det-body{padding:32px 22px 50px;}}
+  .det-titlerow{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap;}
+  .det-title{font-size:clamp(34px,5vw,52px);color:var(--navy);text-transform:uppercase;}
+  .det-loc{display:flex;align-items:center;gap:8px;color:var(--navy);font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.06em;font-size:14px;margin-top:10px;}
+  .det-loc .map-link{color:var(--smute);}
+  .superior{border:1.5px solid var(--navy);padding:12px 22px;text-align:center;}
+  .superior .s{color:#e0a526;font-size:22px;letter-spacing:4px;}
+  .superior .t{color:#e0a526;font-family:var(--disp);font-stretch:condensed;letter-spacing:.3em;font-size:13px;margin-top:2px;}
+  .amen-icons{display:flex;gap:26px;margin:26px 0 8px;color:var(--navy);}
+  .amen-icons .ai{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.06em;color:var(--body);}
+  .det-desc h3{font-size:22px;color:var(--navy);text-transform:uppercase;margin:34px 0 14px;}
+  .det-desc p{color:var(--body);margin:0 0 14px;}
+  .more-z{color:var(--navy);font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.1em;font-size:13px;font-weight:600;cursor:pointer;}
+
+  /* embedded Strandbutler section (web) */
+  .sb-embed{margin:40px 0;border:1px solid #d6deeb;border-radius:14px;overflow:hidden;box-shadow:0 24px 60px -34px rgba(22,49,92,.55);}
+  .sb-embed .eb-head{background:var(--sb);color:#fff;padding:13px 22px;display:flex;align-items:center;justify-content:space-between;}
+  .sb-embed .eb-head .brand{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14px;}
+  .sb-embed .eb-head .pill{font-size:11px;background:rgba(255,255,255,.16);padding:4px 11px;border-radius:20px;}
+  .sb-embed .eb-body{background:#fff;padding:26px 24px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;}
+  .sb-embed .eb-l h3{font-size:26px;color:var(--sb);font-weight:800;font-family:var(--sans);letter-spacing:0;}
+  .sb-embed .eb-l .avail{display:flex;align-items:center;gap:7px;color:var(--grn);font-weight:700;font-size:14px;margin:8px 0 4px;}
+  .sb-embed .eb-l .avail .d{width:8px;height:8px;border-radius:50%;background:var(--grn);box-shadow:0 0 0 3px var(--grn-soft);}
+  .sb-embed .eb-l .meta{color:var(--smute);font-size:14px;}
+  .sb-embed .eb-l .meta b{color:var(--ink);}
+  .btn-sb{background:var(--sb);color:#fff;border:none;border-radius:10px;padding:16px 30px;font-size:16px;font-weight:700;cursor:pointer;
+    font-family:var(--sans);display:flex;align-items:center;gap:10px;white-space:nowrap;transition:background .15s,transform .1s;}
+  .btn-sb:hover{background:var(--sb-2);} .btn-sb:active{transform:scale(.985);}
+  .sb-embed .eb-foot{grid-column:1/-1;border-top:1px solid var(--shair);padding-top:14px;color:var(--smute);font-size:12.5px;text-align:center;}
+  @media (max-width:680px){.sb-embed .eb-body{grid-template-columns:1fr;}.btn-sb{width:100%;justify-content:center;}}
+
+  .amen-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:34px 30px;margin-top:30px;padding-top:34px;border-top:1px solid var(--line);}
+  .amen-col h4{font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.08em;color:var(--navy);font-size:14px;margin-bottom:12px;}
+  .amen-col ul{list-style:none;margin:0;padding:0;}
+  .amen-col li{font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.04em;color:var(--ink);font-size:13px;line-height:2;}
+  @media (max-width:680px){.amen-cols{grid-template-columns:1fr 1fr;}}
+  .det-map{height:260px;background:linear-gradient(160deg,#cfe0c4,#a9d4ec);border:1px solid var(--line);margin-top:40px;position:relative;}
+  .det-map .leaflet{position:absolute;right:8px;bottom:6px;font-size:10px;color:#5b6b73;background:rgba(255,255,255,.7);padding:2px 6px;}
+  .det-info{margin-top:40px;}
+  .det-info h3{font-size:26px;color:var(--navy);text-transform:uppercase;}
+  .info-row{display:grid;grid-template-columns:200px 1fr;gap:24px;padding:22px 0;border-top:1px solid var(--line);}
+  .info-row .k{font-family:var(--disp);font-stretch:condensed;text-transform:uppercase;letter-spacing:.06em;color:var(--navy);font-size:13px;}
+  .info-row .v{color:var(--body);font-size:15px;}
+  @media (max-width:680px){.info-row{grid-template-columns:1fr;gap:8px;}}
+
+  /* ===== SDK SEAM ===== */
+  .seam{display:none;position:fixed;top:74px;left:0;right:0;z-index:79;background:var(--sb);color:#fff;box-shadow:0 6px 18px -12px rgba(0,0,0,.5);}
+  body[data-sdk="1"] .seam{display:block;}
+  body[data-sdk="1"] .viewport{padding-top:43px;}
+  .seam .inner{max-width:1180px;margin:0 auto;padding:11px 40px;display:flex;align-items:center;justify-content:space-between;font-size:13px;}
+  .seam .brand{display:flex;align-items:center;gap:9px;font-weight:600;}
+  .seam .back{display:flex;align-items:center;gap:6px;color:#c5d4ee;cursor:pointer;}
+  @media (max-width:680px){.seam .inner{padding:10px 22px;}}
+
+  /* ===== SDK SCREENS (web) ===== */
+  .sdk{background:var(--sb-bg);min-height:calc(100vh - 74px - 44px);padding:42px 0 70px;}
+  .sdk-wrap{max-width:880px;margin:0 auto;padding:0 40px;}
+  @media (max-width:680px){.sdk-wrap{padding:0 22px;}}
+  .sdk-step{display:flex;align-items:center;gap:10px;color:var(--smute);font-size:13px;font-weight:600;margin-bottom:8px;}
+  .sdk-h{font-size:30px;color:var(--sb);font-weight:800;margin:0 0 6px;}
+  .sdk-sub{color:var(--smute);font-size:15px;margin:0 0 26px;}
+  .panel{background:#fff;border-radius:16px;padding:26px;box-shadow:0 10px 30px -20px rgba(20,30,55,.4);}
+
+  /* chairs */
+  .beachplan{background:#f3e3bb;border-radius:14px;padding:24px;}
+  .beachplan h4{margin:0 0 10px;font-size:14px;font-weight:800;color:var(--sb);}
+  .beachplan h4:not(:first-child){margin-top:22px;}
+  .chairs{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;}
+  @media (max-width:680px){.chairs{grid-template-columns:repeat(6,1fr);}}
+  .chair{aspect-ratio:1/1.05;border-radius:9px;position:relative;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;cursor:pointer;user-select:none;}
+  .chair.avail{background:var(--sb);color:#fff;box-shadow:inset 0 -5px 0 rgba(0,0,0,.18);}
+  .chair.avail:hover{background:var(--sb-2);} .chair.avail:active{transform:scale(.94);}
+  .chair.booked{background:#d8dadf;color:#a7abb2;cursor:not-allowed;box-shadow:inset 0 -5px 0 rgba(0,0,0,.05);}
+  .chair .bt{position:absolute;top:3px;left:5px;color:#9fc0ef;}
+  .chair.booked .bt{color:#bfc2c8;}
+  .legend{display:flex;gap:24px;margin-top:18px;font-size:13px;color:var(--ink);}
+  .legend .li{display:flex;align-items:center;gap:7px;}
+  .legend .sw{width:15px;height:15px;border-radius:4px;}
+
+  /* cart / pay web two-column */
+  .cols{display:grid;grid-template-columns:1fr 340px;gap:24px;align-items:start;}
+  @media (max-width:740px){.cols{grid-template-columns:1fr;}}
+  .summary{position:sticky;top:130px;}
+  .sum-line{display:flex;justify-content:space-between;font-size:14px;color:var(--body);margin-bottom:11px;}
+  .sum-total{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--shair);margin-top:8px;padding-top:14px;}
+  .sum-total .k{font-size:16px;color:var(--ink);} .sum-total .v{font-size:26px;font-weight:800;color:var(--sb);}
+  .item-card{display:flex;gap:18px;align-items:flex-start;}
+  .item-card .thumb{width:92px;height:92px;border-radius:10px;background:linear-gradient(160deg,#7fb4d6,#e9d9ac);flex:0 0 auto;position:relative;}
+  .item-card h3{margin:0;font-size:20px;color:var(--sb);}
+  .item-card .pt{color:var(--smute);font-size:14px;margin:3px 0 12px;}
+  .kv{display:flex;gap:30px;flex-wrap:wrap;}
+  .kv .k{font-size:12px;color:var(--smute);text-transform:uppercase;letter-spacing:.05em;}
+  .kv .v{font-size:14px;font-weight:600;color:var(--ink);margin-top:2px;}
+  .trash{margin-left:auto;color:#b9bcc2;cursor:pointer;}
+  .btn-sbw{width:100%;background:var(--sb);color:#fff;border:none;border-radius:10px;padding:15px;font-size:16px;font-weight:700;cursor:pointer;font-family:var(--sans);margin-top:18px;transition:background .15s;}
+  .btn-sbw:hover{background:var(--sb-2);}
+  .add-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .add-row .add{font-size:13px;color:var(--sb);font-weight:600;background:#e2e9f4;padding:7px 13px;border-radius:20px;cursor:pointer;}
+
+  .pay-method{display:flex;align-items:center;gap:14px;padding:16px 16px;border:1px solid var(--shair);border-radius:11px;cursor:pointer;margin-bottom:11px;transition:border-color .15s;}
+  .pay-method.on{border-color:var(--sb);background:#f6f9fe;}
+  .pm-logo{width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;}
+  .pm-name{flex:1;font-size:16px;font-weight:600;color:var(--ink);}
+  .pm-radio{width:22px;height:22px;border-radius:50%;border:2px solid #cfd2d8;display:flex;align-items:center;justify-content:center;}
+  .pay-method.on .pm-radio{border-color:var(--sb);}
+  .pay-method.on .pm-radio::after{content:"";width:11px;height:11px;border-radius:50%;background:var(--sb);}
+  .lbl-h{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--smute);text-transform:uppercase;margin:22px 0 12px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;color:var(--smute);margin-bottom:5px;}
+  .field input{width:100%;border:1px solid var(--shair);border-radius:9px;padding:13px 14px;font-size:15px;font-family:var(--sans);color:var(--ink);background:#fff;}
+  .field.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+  /* confirmation */
+  .confirm{text-align:center;max-width:560px;margin:0 auto;}
+  .check{width:84px;height:84px;border-radius:50%;background:var(--grn);margin:0 auto 18px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 9px var(--grn-soft);animation:pop .4s cubic-bezier(.2,1.4,.4,1) both;}
+  @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+  .confirm h2{font-size:32px;color:var(--sb);font-family:var(--sans);font-weight:800;margin:0;}
+  .confirm .cs{color:var(--smute);margin:10px 0 0;}
+  .cmeta{background:#fff;border-radius:14px;padding:20px;margin:24px 0 18px;text-align:left;box-shadow:0 10px 30px -20px rgba(20,30,55,.4);}
+  .cmeta .r{display:flex;gap:14px;align-items:center;}
+  .cmeta .ic{width:46px;height:46px;border-radius:10px;background:#eef2f8;display:flex;align-items:center;justify-content:center;color:var(--sb);}
+  .cmeta .t{font-size:12px;color:var(--smute);} .cmeta .vv{font-size:15px;font-weight:700;color:var(--ink);}
+  .cmeta .div{height:1px;background:var(--shair);margin:16px 0;}
+  .note{background:#e7edf6;border-radius:12px;padding:14px 16px;font-size:13px;color:#46587a;margin-bottom:18px;}
+  .cbtns{display:flex;gap:12px;justify-content:center;}
+  .btn-ghost{background:#fff;color:var(--sb);border:1.5px solid var(--sb);border-radius:10px;padding:14px 26px;font-size:15px;font-weight:700;cursor:pointer;font-family:var(--sans);}
+
+  /* bookings */
+  .bk-empty{text-align:center;padding:50px 20px;}
+  .bk-empty .ring{width:84px;height:84px;border-radius:50%;background:#e1e7f1;display:flex;align-items:center;justify-content:center;color:#9aa7bf;margin:0 auto 18px;}
+  .bk-empty h3{font-size:22px;color:var(--sb);font-family:var(--sans);margin:0;}
+  .bk-empty p{color:var(--smute);margin:8px 0 22px;}
+  .booking-card{border:1.5px solid var(--grn);border-radius:14px;padding:22px;background:#fff;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;}
+  .bc-ic{width:58px;height:58px;border-radius:12px;background:var(--grn-soft);display:flex;align-items:center;justify-content:center;}
+  .bc-info h3{margin:0;font-size:20px;color:var(--sb);}
+  .bc-info .loc{color:var(--smute);font-size:14px;margin-top:3px;}
+  .bc-info .sub{display:flex;gap:16px;margin-top:8px;font-size:13px;color:var(--body);}
+  .bc-badge{display:inline-flex;align-items:center;gap:6px;background:var(--grn-soft);color:#0f7a43;font-size:11px;font-weight:800;letter-spacing:.05em;padding:5px 11px;border-radius:20px;}
+  .bc-actions{display:flex;flex-direction:column;gap:9px;}
+  .bc-btn{border:1.5px solid var(--sb);background:#fff;color:var(--sb);border-radius:9px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--sans);white-space:nowrap;}
+  .bc-btn.danger{border-color:var(--shair);color:var(--smute);font-weight:600;}
+  @media (max-width:680px){.booking-card{grid-template-columns:1fr;text-align:left;}.bc-actions{flex-direction:row;}}
+  .voucher{margin-top:14px;background:#f6f9fe;border:1px dashed #c3d2ea;border-radius:12px;padding:18px;display:none;align-items:center;gap:18px;}
+  .voucher.show{display:flex;}
+  .voucher .qr{width:78px;height:78px;background:#fff;border-radius:8px;
+    -webkit-mask:repeating-conic-gradient(#000 0 25%,transparent 0 50%) 0 0/13px 13px;mask:repeating-conic-gradient(#000 0 25%,transparent 0 50%) 0 0/13px 13px;background:var(--sb);}
+  .voucher .vt{font-size:13px;color:var(--body);}
+  .voucher .vt b{color:var(--ink);}
+
+  /* ===== HELPER STRIP ===== */
+  #strip{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);display:flex;align-items:center;gap:4px;background:#fff;border-radius:30px;padding:6px;z-index:90;
+    box-shadow:0 16px 40px -12px rgba(14,51,67,.4),0 2px 6px rgba(0,0,0,.08);max-width:94vw;overflow-x:auto;scrollbar-width:none;}
+  #strip::-webkit-scrollbar{display:none;}
+  .chip{display:flex;align-items:center;gap:6px;padding:9px 13px;border-radius:22px;cursor:pointer;white-space:nowrap;font-size:12.5px;font-weight:600;color:#5d6470;flex:0 0 auto;transition:background .15s,color .15s;}
+  .chip .n{width:18px;height:18px;border-radius:50%;background:#eef0f4;color:#7a818c;font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+  .chip.host .n{background:rgba(14,51,67,.12);color:var(--navy);}
+  .chip:hover{background:#f4f5f7;}
+  .chip.active{background:var(--sb);color:#fff;}
+  .chip.active .n{background:rgba(255,255,255,.22);color:#fff;}
+  .chip.host.active{background:var(--navy);}
+  .chip.host.active .n{background:rgba(255,255,255,.25);color:#fff;}
+  .strip-div{width:1px;height:22px;background:var(--shair);flex:0 0 auto;margin:0 2px;}
+</style>
+</head>
+<body data-sdk="0">
+
+<!-- ===== HOST TOP NAV ===== -->
+<div class="nav">
+  <div class="logo" onclick="go('s-home')">
+    <svg width="64" height="30" viewBox="0 0 64 30" fill="none"><path d="M14 11c3-5 12-5 13 1 4-1 7 2 6 6-1 4-6 4-9 4H10c-4 0-6-3-5-6 1-3 5-4 9-5Z" stroke="#fff" stroke-width="1.6"/><path d="M8 23c4-2 7 1 11-1 3-1.5 6 1 10-1" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </div>
+  <div class="nav-mid">
+    <div class="nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><circle cx="11" cy="11" r="2.5"/><path d="m16 16 5 5"/></svg>Webcams</div>
+    <div class="nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>Events</div>
+    <div class="nav-item"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/></svg>Binzer Bucht Card</div>
+    <div class="nav-item" onclick="go('s-detail')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 18v-6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v6M3 14h18M6 10V8a2 2 0 0 1 2-2h3v4"/></svg>Book</div>
+  </div>
+  <div class="nav-r">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+  </div>
+</div>
+
+<!-- ===== SDK SEAM ===== -->
+<div class="seam">
+  <div class="inner">
+    <div class="brand"><svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a2 2 0 0 0-2 2v.6A7 7 0 0 0 5 11v4l-1.6 2.2A1 1 0 0 0 4.2 19h15.6a1 1 0 0 0 .8-1.8L19 15v-4a7 7 0 0 0-5-6.4V4a2 2 0 0 0-2-2zm0 20a2.5 2.5 0 0 0 2.4-1.8H9.6A2.5 2.5 0 0 0 12 22z"/></svg>Powered by Strandbutler</div>
+    <div class="back" onclick="exitSDK()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Back to Binzer Bucht</div>
+  </div>
+</div>
+
+<div class="viewport">
+
+  <!-- ============ HOME ============ -->
+  <section class="screen active" id="s-home" data-screen-label="Binzer Bucht Home">
+    <div class="hero">
+      <div class="h-treeline"></div>
+      <div class="h-inner">
+        <div class="h-kicker">All but ordinary.</div>
+        <svg class="wave" viewBox="0 0 64 14" fill="none" stroke="#fff" stroke-width="2"><path d="M2 7c5-6 9 6 14 0s9 6 14 0 9 6 14 0 9 6 14 0" stroke-linecap="round"/></svg>
+        <h1 class="disp">BINZER <span class="b2">BUCHT</span></h1>
+      </div>
+      <svg class="scroll" width="26" height="40" viewBox="0 0 26 40" fill="none" stroke="#fff" stroke-width="1.6"><path d="M13 2v34M5 28l8 8 8-8"/></svg>
+    </div>
+
+    <div class="sec editorial">
+      <div class="wrap">
+        <div class="kicker">Opposites attract</div>
+        <h2 class="disp" style="margin-top:18px;"><span class="faded">TWO WORLDS. ONE BAY.</span>YOUR FREEDOM.</h2>
+        <p class="body">In Binz you feel the myth of the Baltic resort with every step — white villas with playful wooden balconies, a promenade made for strolling, and fine dining that lifts the north to world class. Prora breaks the mould: design lofts with an unobstructed sea view, laid-back beach culture and fine sand. For everyone chasing the horizon and uncompromising free space.</p>
+        <div class="cards-overlap">
+          <div class="ovc a" onclick="go('s-detail')"><span class="lbl">BINZ</span><span class="more">Discover more</span></div>
+          <div class="ovc b" onclick="go('s-detail')"><span class="lbl">PRORA</span><span class="more">Discover more</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec tight stats">
+      <div class="wrap">
+        <h2 class="disp">THE BINZER BAY IN NUMBERS</h2>
+        <div class="stat-row">
+          <div class="stat"><div class="num">2.125+</div><div class="cap">Hours of sun<br>per year</div></div>
+          <div class="stat"><div class="num">100+</div><div class="cap">Years of<br>resort architecture</div></div>
+          <div class="stat"><div class="num">1000+</div><div class="cap">Hectares of<br>nature reserve</div></div>
+          <div class="stat"><div class="num">14</div><div class="cap">Kilometres of<br>beach &amp; coast</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- booking search -->
+    <div class="searchbar">
+      <div class="wrap">
+        <div class="inner">
+          <div class="fld dates"><span class="l">Arrival &amp; departure</span><div class="ctrl"><span>Check-in</span><span>Check-out</span></div></div>
+          <div class="fld"><span class="l">Guests</span><div class="ctrl" style="color:var(--ink);justify-content:space-between;">2 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div></div>
+          <button class="btn-host" onclick="go('s-detail')">Book</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- accommodation discovery -->
+    <div class="sec">
+      <div class="wrap">
+        <div class="acc-head">
+          <span class="kicker">Stay in the Binzer Bay</span>
+          <h2 class="disp">FIND YOUR PLACE BY THE SEA</h2>
+        </div>
+        <div class="acc-grid" id="accGrid"></div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <div class="wrap"><div class="fr">
+        <div class="fl"><span>Imprint</span><span>Privacy</span><span>Contact</span></div>
+        <small>© 2026 · Binzer Bucht Tourismus</small>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ============ ACCOMMODATION DETAIL (host context) ============ -->
+  <section class="screen" id="s-detail" data-screen-label="Binzer Bucht Accommodation Detail">
+    <div class="det-tabs">
+      <span class="on">General</span><span onclick="go('s-chairs')">Check availability</span><span>Amenities</span><span>Contact &amp; arrival</span><span>More</span>
+    </div>
+    <div class="gallery">
+      <div class="g g1"></div><div class="g g2"></div><div class="g g3"></div>
+      <div class="allimg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg>Show all 85 photos</div>
+    </div>
+    <div class="det-body">
+      <div class="det-titlerow">
+        <div>
+          <h1 class="det-title">Hotel Meersinn</h1>
+          <div class="det-loc"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>Binz <span class="map-link">· Show on map</span></div>
+        </div>
+        <div class="superior"><div class="s">★★★★</div><div class="t">Superior</div></div>
+      </div>
+      <div class="amen-icons">
+        <div class="ai"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 12a10 10 0 0 1 14 0M8 15a6 6 0 0 1 8 0"/><circle cx="12" cy="18" r="1" fill="currentColor"/></svg>WiFi</div>
+        <div class="ai"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>Central location</div>
+        <div class="ai"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M5 11a3 3 0 0 1 6 0v3H5zM14 8c2 0 4 2 4 5v1h-4M9 14v4M16 14v4"/></svg>Pets welcome</div>
+      </div>
+      <div class="det-desc">
+        <h3>Hotel Meersinn Binz at a glance</h3>
+        <p>Holiday in the heart of Binz — look forward to the sandy Baltic beach just a few steps from the house. The refreshing sea air helps you forget everyday life, while the eye delights in the grand Binz resort architecture into which the Hotel Meersinn fits as elegantly as it does charmingly.</p>
+        <p>Spacious rooms, a wellness area with sauna and indoor pool, and an à-la-carte restaurant round off your stay directly on the promenade.</p>
+        <span class="more-z">Show more ⌄</span>
+      </div>
+
+      <!-- ===== EMBEDDED STRANDBUTLER ===== -->
+      <div class="sb-embed">
+        <div class="eb-head">
+          <div class="brand"><svg width="15" height="15" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a2 2 0 0 0-2 2v.6A7 7 0 0 0 5 11v4l-1.6 2.2A1 1 0 0 0 4.2 19h15.6a1 1 0 0 0 .8-1.8L19 15v-4a7 7 0 0 0-5-6.4V4a2 2 0 0 0-2-2z"/></svg>Strandbutler</div>
+          <div class="pill">Reserve your beach chair for your stay</div>
+        </div>
+        <div class="eb-body">
+          <div class="eb-l">
+            <h3>Beach chairs at the house beach</h3>
+            <div class="avail"><span class="d"></span>96 available for your dates</div>
+            <div class="meta">2-person Strandkorb · West Beach, Binz · from <b>€12.50</b> / day</div>
+          </div>
+          <button class="btn-sb" onclick="go('s-chairs')">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h16M6 20v-5a6 6 0 0 1 12 0v5"/></svg>
+            Book a beach chair
+          </button>
+          <div class="eb-foot">Booking &amp; payment handled directly by Strandbutler — added to your trip in the Binzer Bucht portal</div>
+        </div>
+      </div>
+
+      <div class="amen-cols">
+        <div class="amen-col"><h4>Operation</h4><ul><li>Coastal hotel</li></ul></div>
+        <div class="amen-col"><h4>Suitability</h4><ul><li>Families</li><li>Groups</li><li>Children</li></ul></div>
+        <div class="amen-col"><h4>Facilities</h4><ul><li>Bicycle storage</li><li>Pets on request</li><li>Free internet</li><li>Paid parking</li></ul></div>
+        <div class="amen-col"><h4>Wellness</h4><ul><li>Steam bath</li><li>Indoor pool</li><li>Sauna</li></ul></div>
+        <div class="amen-col"><h4>Location</h4><ul><li>Beach on foot</li><li>5 min to beach</li><li>Central location</li></ul></div>
+        <div class="amen-col"><h4>Payment</h4><ul><li>Cash</li><li>EC / Maestro</li><li>VISA · Mastercard</li></ul></div>
+      </div>
+
+      <div class="det-map"><div class="leaflet">LEAFLET</div></div>
+
+      <div class="det-info">
+        <h3 style="margin-bottom:22px;">More information</h3>
+        <div class="info-row"><div class="k">Good to know</div><div class="v">Payment on site in cash, by EC card, VISA or Mastercard. Arrival from 15:00. Check-out until 11:00. Reception staffed daily 9 am – 9 pm.</div></div>
+        <div class="info-row"><div class="k">Check-in / Check-out</div><div class="v">Check-in 15:00 – 20:00 · Check-out 08:00 – 11:00</div></div>
+        <div class="info-row"><div class="k">Address</div><div class="v">Schillerstr. 6-10, 18609 Ostseebad Binz, Germany</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SDK 1: CHAIR SELECTION ============ -->
+  <section class="screen" id="s-chairs" data-screen-label="SDK Chair Selection">
+    <div class="sdk"><div class="sdk-wrap">
+      <div class="sdk-step">Strandbutler · Step 1 of 4</div>
+      <h2 class="sdk-h">Select your beach chair</h2>
+      <p class="sdk-sub">House beach · West Beach, Binz · for your stay 08–08 Aug 2026</p>
+      <div class="panel">
+        <div class="beachplan" id="chairGrid"></div>
+        <div class="legend">
+          <div class="li"><span class="sw" style="background:var(--sb)"></span>Available</div>
+          <div class="li"><span class="sw" style="background:#d8dadf"></span>Booked</div>
+          <div class="li"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--sb-2)" stroke-width="2"><path d="m8 7 8 6-4 3V5l4 3-8 6"/></svg>Bluetooth-enabled</div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ============ SDK 2: CART ============ -->
+  <section class="screen" id="s-cart" data-screen-label="SDK Cart">
+    <div class="sdk"><div class="sdk-wrap">
+      <div class="sdk-step">Strandbutler · Step 2 of 4</div>
+      <h2 class="sdk-h">Your booking</h2>
+      <p class="sdk-sub">Review your beach chair before checkout</p>
+      <div class="cols">
+        <div class="panel">
+          <div class="add-row"><span style="color:var(--smute);font-size:14px;">1 beach chair</span><span class="add">+ Add another chair</span></div>
+          <div class="item-card">
+            <div class="thumb"></div>
+            <div style="flex:1;">
+              <h3>Beach Chair <span id="cartChairNo">#117</span></h3>
+              <div class="pt">2-person Strandkorb · Bluetooth lock</div>
+              <div class="kv">
+                <div><div class="k">Date</div><div class="v">08 Aug 2026</div></div>
+                <div><div class="k">Time</div><div class="v">09:00–20:00</div></div>
+                <div><div class="k">Location</div><div class="v">West Beach · Row <span id="cartRow">3</span></div></div>
+              </div>
+            </div>
+            <div class="trash"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2m-9 0 1 14h8l1-14"/></svg></div>
+          </div>
+        </div>
+        <div class="panel summary">
+          <div class="sum-line"><span>Beach chair · 1 day</span><span>€12.50</span></div>
+          <div class="sum-line"><span>Service fee</span><span>€0.00</span></div>
+          <div class="sum-total"><span class="k">Total</span><span class="v">€12.50</span></div>
+          <button class="btn-sbw" onclick="go('s-pay')">Continue to payment</button>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ============ SDK 3: PAYMENT ============ -->
+  <section class="screen" id="s-pay" data-screen-label="SDK Payment">
+    <div class="sdk"><div class="sdk-wrap">
+      <div class="sdk-step">Strandbutler · Step 3 of 4</div>
+      <h2 class="sdk-h">Payment</h2>
+      <p class="sdk-sub">Secure checkout · your booking is created instantly</p>
+      <div class="cols">
+        <div class="panel">
+          <div class="lbl-h" style="margin-top:0;">Payment method</div>
+          <div class="pay-method" data-pm="card" onclick="pickPM('card')"><div class="pm-logo" style="background:#eceff4;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5b6470" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div><div class="pm-name">Credit card</div><div class="pm-radio"></div></div>
+          <div class="pay-method" data-pm="paypal" onclick="pickPM('paypal')"><div class="pm-logo" style="background:#eef3fb;color:#22408c;">P</div><div class="pm-name">PayPal</div><div class="pm-radio"></div></div>
+          <div class="pay-method" data-pm="sepa" onclick="pickPM('sepa')"><div class="pm-logo" style="background:#eef7f0;color:#1c7a45;">€</div><div class="pm-name">SEPA direct debit</div><div class="pm-radio"></div></div>
+          <div class="lbl-h">Card details</div>
+          <div class="field"><label>Cardholder</label><input value="Max Mustermann" /></div>
+          <div class="field"><label>Card number</label><input value="4242 4242 4242 4242" /></div>
+          <div class="field row2"><div><label>Expiry</label><input value="08 / 28" /></div><div><label>CVC</label><input value="123" /></div></div>
+        </div>
+        <div class="panel summary">
+          <div class="sum-line"><span>Beach Chair #117</span><span>€12.50</span></div>
+          <div class="sum-line"><span>West Beach · Binz</span><span></span></div>
+          <div class="sum-total"><span class="k">Total</span><span class="v">€12.50</span></div>
+          <button class="btn-sbw" onclick="completePayment()">Pay €12.50</button>
+          <div style="text-align:center;color:var(--smute);font-size:12px;margin-top:10px;">🔒 Encrypted · powered by Strandbutler</div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ============ SDK 4: CONFIRMATION ============ -->
+  <section class="screen" id="s-confirm" data-screen-label="SDK Confirmation">
+    <div class="sdk"><div class="sdk-wrap">
+      <div class="confirm">
+        <div class="check"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <h2>Booking confirmed</h2>
+        <p class="cs">Your beach chair is booked and ready. A confirmation has been sent to your email.</p>
+        <div class="cmeta">
+          <div class="r"><div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20h16M6 20v-5a6 6 0 0 1 12 0v5"/></svg></div>
+            <div><div class="vv">Beach Chair #117</div><div class="t">West Beach, Row 3 · Binz</div></div></div>
+          <div class="div"></div>
+          <div class="r" style="justify-content:space-between;"><div><div class="t">When</div><div class="vv">09:00–20:00 · 08 Aug 2026</div></div><div style="text-align:right;"><div class="t">Total</div><div class="vv">€12.50</div></div></div>
+        </div>
+        <div class="note">Your booking is active. Open <b>My Bookings</b> any time to view your voucher or manage the reservation.</div>
+        <div class="cbtns">
+          <button class="btn-ghost" onclick="exitSDK()">Back to Hotel Meersinn</button>
+          <button class="btn-sbw" style="width:auto;margin-top:0;padding:14px 26px;" onclick="go('s-bookings')">Go to My Bookings</button>
+        </div>
+      </div>
+    </div></div>
+  </section>
+
+  <!-- ============ SDK 5: BOOKING MANAGEMENT ============ -->
+  <section class="screen" id="s-bookings" data-screen-label="SDK Bookings">
+    <div class="sdk"><div class="sdk-wrap">
+      <div class="sdk-step">Strandbutler</div>
+      <h2 class="sdk-h">My Bookings</h2>
+      <p class="sdk-sub">Manage your beach chair reservations</p>
+      <div id="bookingsBody"></div>
+    </div></div>
+  </section>
+
+</div><!-- /viewport -->
+
+<!-- ===== HELPER STRIP ===== -->
+<div id="strip">
+  <div class="chip host" data-target="s-home"><span class="n"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 3 10v11h6v-6h6v6h6V10z"/></svg></span>Host</div>
+  <div class="strip-div"></div>
+  <div class="chip" data-target="s-detail"><span class="n">1</span>Context</div>
+  <div class="chip" data-target="s-chairs"><span class="n">2</span>Chairs</div>
+  <div class="chip" data-target="s-cart"><span class="n">3</span>Cart</div>
+  <div class="chip" data-target="s-pay"><span class="n">4</span>Payment</div>
+  <div class="chip" data-target="s-confirm"><span class="n">5</span>Confirmation</div>
+  <div class="chip" data-target="s-bookings"><span class="n">6</span>Bookings</div>
+</div>
+
+<script>
+const SDK_SCREENS=['s-chairs','s-cart','s-pay','s-confirm','s-bookings'];
+const HOST_SCREENS=['s-home','s-detail'];
+const KEY='strandbutler_binz_v1';
+let state=load();
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{}}catch(e){return{}}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state));}
+
+/* accommodation discovery cards */
+const accs=[
+  {nm:'Hotel Meersinn',loc:'Binz · Promenade',stars:4,price:'from €148',grad:'linear-gradient(160deg,#9db4c2,#5a7e8e)',feat:true},
+  {nm:'Strandvilla Bucht',loc:'Binz · Seafront',stars:4,price:'from €132',grad:'linear-gradient(160deg,#c3cdbb,#7e9176)'},
+  {nm:'Prora Design Loft',loc:'Prora · Beachside',stars:5,price:'from €176',grad:'linear-gradient(160deg,#a9b6c4,#4a5e70)'},
+];
+function stars(n){return '★★★★★'.slice(0,n)+'☆☆☆☆☆'.slice(0,5-n);}
+document.getElementById('accGrid').innerHTML=accs.map(a=>`
+  <div class="acc-card" onclick="go('s-detail')">
+    <div class="pic" style="background:${a.grad}">
+      ${a.feat?'<span class="tag">Featured</span><span class="feat"><svg width="9" height="9" viewBox="0 0 24 24" fill="#fff"><path d="M12 2a2 2 0 0 0-2 2v.6A7 7 0 0 0 5 11v4l-1.6 2.2A1 1 0 0 0 4.2 19h15.6a1 1 0 0 0 .8-1.8L19 15v-4a7 7 0 0 0-5-6.4V4a2 2 0 0 0-2-2z"/></svg>Beach chairs</span>':''}
+    </div>
+    <div class="cb"><div class="nm">${a.nm}</div><div class="loc"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5-7-11a7 7 0 0 1 14 0c0 6-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>${a.loc}</div><div class="stars">${stars(a.stars)}</div><div class="price">${a.price} <b>· night</b></div></div>
+  </div>`).join('');
+
+/* chair grid (8-wide web) */
+function renderChairs(){
+  const rows=[
+    {l:'Row 1 · front',c:[{n:110,s:'avail',bt:1},{n:111,s:'avail'},{n:112,s:'booked',bt:1},{n:113,s:'avail'},{n:114,s:'avail',bt:1},{n:115,s:'booked'},{n:116,s:'avail',bt:1},{n:117,s:'avail'}]},
+    {l:'Row 2',c:[{n:118,s:'avail',bt:1},{n:119,s:'booked'},{n:120,s:'avail',bt:1},{n:121,s:'avail'},{n:122,s:'avail',bt:1},{n:123,s:'avail'},{n:124,s:'booked',bt:1},{n:125,s:'avail'}]},
+    {l:'Row 3',c:[{n:126,s:'avail',bt:1},{n:127,s:'avail'},{n:128,s:'booked',bt:1},{n:129,s:'avail'},{n:130,s:'avail',bt:1},{n:131,s:'avail'},{n:132,s:'avail',bt:1},{n:133,s:'avail'}]},
+  ];
+  const bt='<span class="bt"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 7 8 6-4 3V5l4 3-8 6"/></svg></span>';
+  document.getElementById('chairGrid').innerHTML=rows.map(r=>`<h4>${r.l}</h4><div class="chairs">${r.c.map(c=>`<div class="chair ${c.s}" ${c.s==='avail'?`onclick="selectChair(${c.n},'${r.l}')"`:''}>${c.bt?bt:''}${c.n}</div>`).join('')}</div>`).join('');
+}
+renderChairs();
+let pendingChair={no:117,row:'3'};
+function selectChair(n,row){pendingChair={no:n,row:(row.match(/\d+/)||['3'])[0]};document.getElementById('cartChairNo').textContent='#'+n;document.getElementById('cartRow').textContent=pendingChair.row;go('s-cart');}
+
+/* payment */
+state.pm=state.pm||'card';
+function pickPM(pm){state.pm=pm;save();document.querySelectorAll('.pay-method').forEach(m=>m.classList.toggle('on',m.dataset.pm===pm));}
+function syncPM(){document.querySelectorAll('.pay-method').forEach(m=>m.classList.toggle('on',m.dataset.pm===state.pm));}
+function completePayment(){state.booking={no:pendingChair.no,row:pendingChair.row,loc:'West Beach, Row '+pendingChair.row+' · Binz',unlocked:false};save();go('s-confirm');}
+
+/* bookings (web, no unlock) */
+function renderBookings(){
+  const b=state.booking,body=document.getElementById('bookingsBody');
+  if(!b){body.innerHTML=`<div class="panel"><div class="bk-empty"><div class="ring"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20h16M6 20v-5a6 6 0 0 1 12 0v5"/></svg></div><h3>No bookings yet</h3><p>Browse beach chairs to start a new booking.</p><button class="btn-sbw" style="width:auto;padding:13px 26px;" onclick="go('s-chairs')">Browse beach chairs</button></div></div>`;return;}
+  body.innerHTML=`<div class="booking-card">
+    <div class="bc-ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#17a05a" stroke-width="1.7"><path d="M4 20h16M6 20v-5a6 6 0 0 1 12 0v5"/></svg></div>
+    <div class="bc-info"><h3>Beach Chair #${b.no}</h3><div class="loc">${b.loc}</div>
+      <div class="sub"><span>📅 08 Aug 2026</span><span>🕘 09:00–20:00</span><span class="bc-badge"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Confirmed</span></div></div>
+    <div class="bc-actions"><button class="bc-btn" onclick="toggleVoucher()">View voucher</button><button class="bc-btn danger" onclick="removeBooking()">Cancel booking</button></div>
+    <div class="voucher" id="voucher" style="grid-column:1/-1;"><div class="qr"></div><div class="vt"><b>Pickup voucher · #${b.no}</b><br>Show this code at the Strandbutler station at ${b.loc.split('·')[1]||'Binz'}. Staff will set up your chair.</div></div>
+  </div>`;
+}
+function removeBooking(){state.booking=null;save();renderBookings();}
+function toggleVoucher(){const v=document.getElementById('voucher');if(v)v.classList.toggle('show');}
+
+/* navigation */
+function isSDK(id){return SDK_SCREENS.includes(id);}
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.body.dataset.sdk=isSDK(id)?'1':'0';
+  if(id==='s-pay')syncPM();
+  if(id==='s-bookings')renderBookings();
+  updateStrip(id);
+  window.scrollTo({top:0,behavior:'auto'});
+  state.screen=id;save();
+}
+function exitSDK(){go('s-detail');}
+function updateStrip(id){
+  document.querySelectorAll('.chip').forEach(c=>{const t=c.dataset.target;let on=(t===id);
+    if(t==='s-home'&&id==='s-home')on=true;
+    c.classList.toggle('active',on);});
+}
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>go(c.dataset.target)));
+
+/* WEB_EMBED · DISCOVERY_OWNER=HOST → open on host home */
+go('s-home');
+</script>
+</body>
+</html>
